@@ -121,21 +121,39 @@ impl<const WC: PtrWidthChoice> TT for BPtr<WC> {
     const PW: usize = WC as usize;
 }
 
-//struct ARGS<const A: (bool, bool)> {}
+//-------
+/// For sealing traits (use as an argument for method(s) that seal a trait). Intentionally _not_
+/// public.
+struct Seal;
 
 pub trait PtrWidthIndicator {
     //const PTR_WIDTH: usize;
     type Ptr;
+
+    #[allow(private_interfaces)]
+    fn sealed(_: Seal);
 }
 
-pub struct Pt<PWI: PtrWidthIndicator> {
+type Bytes<const N: usize> = [u8; N];
+
+pub struct PtrWidth2 {}
+impl PtrWidthIndicator for PtrWidth2 {
+    type Ptr = Bytes<2>;
+    #[allow(private_interfaces)]
+    fn sealed(_: Seal) {}
+}
+
+/// Alignment (in bytes).
+pub type Alignment = u16;
+pub const ALIGN_1: Alignment = 1;
+pub const ALIGN_2: Alignment = 2;
+//pub struct
+
+/// Generic argument `PWI` (implementing [PtrWidthIndicator]) acts like a `const` generic. This is necessary until @TODO
+pub struct Pt<PWI: PtrWidthIndicator, const ALIGN: Alignment> {
     //bytes: [u8; PWI::PTR_WIDTH]
     bytes: <PWI as PtrWidthIndicator>::Ptr,
 
-    _p: core::marker::PhantomData<PWI>,
+    _pwi: core::marker::PhantomData<PWI>,
 }
-impl<PWI: PtrWidthIndicator> Pt<PWI> {
-    pub fn f() {
-        let _: <PWI as PtrWidthIndicator>::Ptr;
-    }
-}
+impl<PWI: PtrWidthIndicator, const ALIGN: Alignment> Pt<PWI, ALIGN> {}
