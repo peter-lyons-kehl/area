@@ -62,7 +62,8 @@ mod tests {
 }
 
 pub trait Referrable {}
-
+//-----------
+/*
 /** Pointer width choice. As if an enum. */
 pub type PtrWidthChoice = u8;
 pub const PTR_WIDTH_CHOICE_2: PtrWidthChoice = 0;
@@ -120,8 +121,9 @@ trait TT {
 impl<const WC: PtrWidthChoice> TT for BPtr<WC> {
     const PW: usize = WC as usize;
 }
-
+*/
 //-------
+
 // @TODO remove if unused
 /// For sealing traits (use as an argument for method(s) that seal a trait). Intentionally _not_
 /// public.
@@ -132,36 +134,59 @@ trait PtrWidthIndicatorBase {}
 
 #[allow(private_bounds)]
 pub trait PtrWidthIndicator: PtrWidthIndicatorBase {
-    //const PTR_WIDTH: usize;
+    // @TODO add any traits, like From<...>, or make new traits, if needed
     type Ptr;
 }
 
-type Bytes<const N: usize> = [u8; N];
-
+/// Like an enum. However, it can't be a wqrapper/struct/enum because of @TODO.
 pub type PtrWidthLabel = char;
 
-/// Not to be instantiated outside of this crate (that's why `#[non_exhaustive]`). Actually, never
-/// to be instantiated, mmap-ed etc. (hence [PtrWidthConGen::_never_to_exist] - which
-/// can't fit into any addressable RAM).
+/// Indicate pointer width. This is _not_ going to be an alias to `[u8; 2]` (nor to area's internal
+/// `Bytes<2>`, nor to anything similar), because by having a dedicated type we prevent accidental
+/// mistakes (and we make it more forward compatible once relevant unstable Rust features get
+/// stabilized @TODO).
+///
+/// However, it *will* be (hopefully) replaced with a `const` generic, once @TODO is stabilized.
+///
+/// Not to be instantiated outside of this crate (that's why it's `#[non_exhaustive]`). Actually,
+/// never to be instantiated, mmap-ed etc. (Hence [PtrWidth::_never_to_exist] - which can't
+/// fit into any addressable memory).
+///
+/// `W` indicates how many bytes.
 #[non_exhaustive]
-pub struct PtrWidthConGen<const W: PtrWidthLabel> {
+pub struct PtrWidth<const W: PtrWidthLabel> {
     _never_to_exist: [u64; usize::MAX],
 }
 
-/// Indicate that pointers use 2 bytes.
-///
-/// This is _not_ going to be an alias to `[u8; 2]` (nor to area's internal `Bytes<2>`, nor to
-/// anything similar), because by having a dedicated type we prevent accidental mistakes (and we
-/// make it more forward compatible once relevant unstable Rust features get stabilized @TODO).
-///
-/// However, it *will* be (hopefully) replaced with a `const` generic, once @TODO is stabilized.
-pub type PtrWidth2 = PtrWidthConGen<'2'>;
-pub type PtrWidth4 = PtrWidthConGen<'4'>;
-pub type PtrWidth8 = PtrWidthConGen<'8'>;
-pub type PtrWidthS = PtrWidthConGen<'s'>;
+/// 2 bytes (16 bit) pointer label. Respective to [PtrWidth2].
+pub const PTR_WIDTH_LABEL_2: PtrWidthLabel = '2';
+/// 4 bytes (32 bit) pointer label. Respective to [PtrWidth4].
+pub const PTR_WIDTH_LABEL_4: PtrWidthLabel = '4';
+/// 8 bytes (64 bit) pointer label. Respective to [PtrWidth8].
+pub const PTR_WIDTH_LABEL_8: PtrWidthLabel = '8';
+/// [usize[-wide pointer label. Respective to [PtrWidthS]. _Not_ the same as any other value, even
+/// if the width matches. That prevents hardcoding of any platform's pointer width, or mistakes by
+/// using [PtrWidthS] interchangeably with any other width (even if they happen to be of the same
+/// pointer width on any platform).
+pub const PTR_WIDTH_LABEL_S: PtrWidthLabel = 's';
+
+/// 2 bytes (16 bit) pointer. Respective to [PTR_WIDTH_LABEL_2].
+pub type PtrWidth2 = PtrWidth<PTR_WIDTH_LABEL_2>;
+/// 4 bytes (32 bit) pointer. Respective to [PTR_WIDTH_LABEL_4].
+pub type PtrWidth4 = PtrWidth<PTR_WIDTH_LABEL_4>;
+/// 8 bytes (64 bit) pointer. Respective to [PTR_WIDTH_LABEL_8].
+pub type PtrWidth8 = PtrWidth<PTR_WIDTH_LABEL_8>;
+/// [usize]-wide pointer. Respective to [PTR_WIDTH_LABEL_S]. _Not_ the same as any other value, even
+/// if the width matches. That prevents hardcoding of any platform's pointer width, or mistakes by
+/// using [PtrWidthS] interchangeably with any other width (even if they happen to be of the same
+/// pointer width on any platform).
+pub type PtrWidthS = PtrWidth<PTR_WIDTH_LABEL_S>;
+
+type Bytes<const N: usize> = [u8; N];
+
 /// Unfortunately, we can't just have
 /// ```ignore
-/// impl<const W: char> PtrWidthIndicator for PtrWidthConGen<W> {
+/// impl<const W: char> PtrWidthIndicator for PtrWidth<W> {
 ///    type Ptr = Bytes< {as_ptr_width(W)} >;
 ///    // ...
 /// }
@@ -186,11 +211,12 @@ impl PtrWidthIndicator for PtrWidthS {
 }
 
 /// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement
-/// [PtrWidthIndicator] for [PtrWidthConGen], because both [PtrWidthIndicator] and [PtrWidthConGen]
-/// are defined in this crate.
-impl<const W: PtrWidthLabel> PtrWidthIndicatorBase for PtrWidthConGen<W> {}
+/// [PtrWidthIndicator] for [PtrWidth] (because both [PtrWidthIndicator] and [PtrWidth]
+/// are defined in this crate).
+impl<const PWI: PtrWidthLabel> PtrWidthIndicatorBase for PtrWidth<PWI> {}
 
-const fn as_ptr_width(label: PtrWidthLabel) -> usize {
+// @TODO u16 or wrapper?
+pub const fn as_ptr_width(label: PtrWidthLabel) -> usize {
     match label {
         '2' => 2,
         '4' => 4,
@@ -230,7 +256,8 @@ pub const ALIGN_32: Alignment = 32;
 pub const ALIGN_64: Alignment = 64;
 pub const ALIGN_128: Alignment = 128;
 
-/// Generic argument `PWI` (implementing [PtrWidthIndicator]) acts like a `const` generic. This is necessary until @TODO
+/// Generic argument `PWI` (implementing [PtrWidthIndicator]) acts like a `const` generic. This is
+/// necessary until @TODO
 pub struct Pt<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> {
     //bytes: [u8; PWI::PTR_WIDTH]
     bytes: <PWI as PtrWidthIndicator>::Ptr,
@@ -239,7 +266,9 @@ pub struct Pt<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> {
     _t: core::marker::PhantomData<T>,
 }
 impl<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> Pt<T, PWI, ALIGN> {
-    // @TODO consider removing ALIGN; AND: Do we need Alignment = u16? And/or, have a new wrapper around u16.
+    // @TODO consider removing ALIGN; AND:
+    //
+    // Do we need Alignment = u16? And/or, have a new wrapper around u16.
     pub const fn alignment(&self) -> usize {
         core::mem::align_of::<T>()
     }
@@ -262,12 +291,8 @@ impl<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> PtCheck for Pt<T, PWI, A
             if is_power_of_two {
                 panic!("Too high alignment (and not a power of two)");
             } else {
-                // Hmm:
-                //
-                // - https://doc.rust-lang.org/core/mem/fn.align_of.html -> "may be smaller than the
-                //   preferred alignment"
-                //
-                // -
+                // Hmm https://doc.rust-lang.org/core/mem/fn.align_of.html -> "may be smaller than
+                // the preferred alignment"
                 panic!("Too high  alignment");
             }
         }
@@ -289,8 +314,8 @@ impl<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> PtCheck for Pt<T, PWI, A
     //type Ptr2;
 }
 
-pub struct PtrWidthConGen<const W: PtrWidthLabel> {}
-impl<const WW: PtrWidthLabel> CharToWidth for PtrWidthConGen<WW> {
+pub struct PtrWidth<const W: PtrWidthLabel> {}
+impl<const WW: PtrWidthLabel> CharToWidth for PtrWidth<WW> {
     const W: usize = const { if true { 0 } else { unreachable!() } };
 
     // Can't have the following - it fails with error:
@@ -300,14 +325,14 @@ impl<const WW: PtrWidthLabel> CharToWidth for PtrWidthConGen<WW> {
     //type Ptr2 = [u8; Self::W]
 }
 
-impl PtrWidthIndicator for PtrWidthConGen<'2'> {
+impl PtrWidthIndicator for PtrWidth<'2'> {
     type Ptr = Bytes<2>;
     #[allow(private_interfaces)]
     fn sealed(_: Seal) {}
 }*/
 
 pub struct PtConGen<const PWI: PtrWidthLabel, const ALIGN: Alignment> {
-    //bytes: <PWI as PtrWidthConGen>::Ptr,
+    //bytes: <PWI as PtrWidth>::Ptr,
 
     //bytes:
 
