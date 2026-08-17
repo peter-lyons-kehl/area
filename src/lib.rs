@@ -139,13 +139,22 @@ pub trait PtrWidthIndicator: PtrWidthIndicatorBase {
 type Bytes<const N: usize> = [u8; N];
 
 pub type PtrWidthLabel = char;
-pub struct PtrWidthConGen<const W: PtrWidthLabel> {}
+
+/// Not to be instantiated outside of this crate (that's why `#[non_exhaustive]`). Actually, never
+/// to be instantiated, mmap-ed etc. (hence [PtrWidthConGen::_never_to_exist] - which
+/// can't fit into any addressable RAM).
+#[non_exhaustive]
+pub struct PtrWidthConGen<const W: PtrWidthLabel> {
+    _never_to_exist: [u64; usize::MAX],
+}
 
 /// Indicate that pointers use 2 bytes.
 ///
 /// This is _not_ going to be an alias to `[u8; 2]` (nor to area's internal `Bytes<2>`, nor to
 /// anything similar), because by having a dedicated type we prevent accidental mistakes (and we
 /// make it more forward compatible once relevant unstable Rust features get stabilized @TODO).
+///
+/// However, it *will* be (hopefully) replaced with a `const` generic, once @TODO is stabilized.
 pub type PtrWidth2 = PtrWidthConGen<'2'>;
 pub type PtrWidth4 = PtrWidthConGen<'4'>;
 pub type PtrWidth8 = PtrWidthConGen<'8'>;
@@ -157,7 +166,7 @@ pub type PtrWidthS = PtrWidthConGen<'s'>;
 ///    // ...
 /// }
 /// ```
-/// because that fails @TODO
+/// or anything similar, because that fails @TODO
 impl PtrWidthIndicator for PtrWidth2 {
     type Ptr = Bytes<2>;
 }
@@ -201,7 +210,7 @@ const fn as_ptr_width(label: PtrWidthLabel) -> usize {
 
 /// @TODO make it a const trait, once Rust stabilizes that. For now use [as_ptr_width] instead (in
 /// `const` context).
-trait AsPtrWidth {
+pub trait AsPtrWidth {
     fn as_ptr_width(&self) -> usize;
 }
 impl AsPtrWidth for PtrWidthLabel {
@@ -215,18 +224,62 @@ pub type Alignment = u16;
 pub const ALIGN_1: Alignment = 1;
 pub const ALIGN_2: Alignment = 2;
 pub const ALIGN_4: Alignment = 4;
+pub const ALIGN_8: Alignment = 8;
+pub const ALIGN_16: Alignment = 16;
+pub const ALIGN_32: Alignment = 32;
+pub const ALIGN_64: Alignment = 64;
+pub const ALIGN_128: Alignment = 128;
 
 /// Generic argument `PWI` (implementing [PtrWidthIndicator]) acts like a `const` generic. This is necessary until @TODO
-pub struct Pt<PWI: PtrWidthIndicator, const ALIGN: Alignment> {
+pub struct Pt<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> {
     //bytes: [u8; PWI::PTR_WIDTH]
     bytes: <PWI as PtrWidthIndicator>::Ptr,
 
     _pwi: core::marker::PhantomData<PWI>,
+    _t: core::marker::PhantomData<T>,
 }
-impl<PWI: PtrWidthIndicator, const ALIGN: Alignment> Pt<PWI, ALIGN> {}
+impl<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> Pt<T, PWI, ALIGN> {
+    // @TODO consider removing ALIGN; AND: Do we need Alignment = u16? And/or, have a new wrapper around u16.
+    pub const fn alignment(&self) -> usize {
+        core::mem::align_of::<T>()
+    }
+}
+trait PtCheck {
+    // @TODO make this actually read, so that it does get linked
+    const CHECK: ();
+}
+impl<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> PtCheck for Pt<T, PWI, ALIGN> {
+    const CHECK: () = {
+        let is_power_of_two = ALIGN.is_power_of_two();
+        if (ALIGN as usize) < core::mem::align_of::<T>() {
+            if is_power_of_two {
+                panic!("Insufficient alignment (and not a power of two)");
+            } else {
+                panic!("Insufficient alignment");
+            }
+        }
+        if ALIGN as usize != core::mem::align_of::<T>() {
+            if is_power_of_two {
+                panic!("Too high alignment (and not a power of two)");
+            } else {
+                // Hmm:
+                //
+                // - https://doc.rust-lang.org/core/mem/fn.align_of.html -> "may be smaller than the
+                //   preferred alignment"
+                //
+                // -
+                panic!("Too high  alignment");
+            }
+        }
+    };
+}
+
 //-----
 
-trait CharToWidth {
+// ---------
+// @TODO remove:
+
+/*trait CharToWidth {
     const W: usize = unreachable!();
 
     // Can't have default for associated types:
@@ -236,9 +289,7 @@ trait CharToWidth {
     //type Ptr2;
 }
 
-// ---------
-// @TODO remove:
-/*pub struct PtrWidthConGen<const W: PtrWidthLabel> {}
+pub struct PtrWidthConGen<const W: PtrWidthLabel> {}
 impl<const WW: PtrWidthLabel> CharToWidth for PtrWidthConGen<WW> {
     const W: usize = const { if true { 0 } else { unreachable!() } };
 
