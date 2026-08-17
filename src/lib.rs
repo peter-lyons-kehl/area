@@ -130,27 +130,27 @@ impl<const WC: PtrWidthChoice> TT for BPtr<WC> {
 struct Seal;
 
 /// For sealing [PtrWidthIndicator] only. Intentionally _not_ public.
-trait PtrWidthIndicatorBase {}
+trait PtrWidthIndicatorSealBase {}
 
 #[allow(private_bounds)]
-pub trait PtrWidthIndicator: PtrWidthIndicatorBase {
+pub trait PtrWidthIndicator: PtrWidthIndicatorSealBase {
     // @TODO add any traits, like From<...>, or make new traits, if needed
     type Ptr;
 }
 
-/// Like an enum. However, it can't be a wqrapper/struct/enum because of @TODO.
+/// Like an enum. However, it can't be a wrapper/struct/enum because of @TODO.
 pub type PtrWidthLabel = char;
 
-/// Indicate pointer width. This is _not_ going to be an alias to `[u8; 2]` (nor to area's internal
-/// `Bytes<2>`, nor to anything similar), because by having a dedicated type we prevent accidental
-/// mistakes (and we make it more forward compatible once relevant unstable Rust features get
-/// stabilized @TODO).
+/// Indicate pointer width. This is _not_ going to be an alias to `[u8; N]` (nor to area's internal
+/// `Bytes<N>`, nor to anything similar), because by having a dedicated type we prevent accidental
+/// mistakes (and we make it more a little more forward compatible once relevant Rust const
+/// generic-related features get stabilized @TODO).
 ///
 /// However, it *will* be (hopefully) replaced with a `const` generic, once @TODO is stabilized.
 ///
 /// Not to be instantiated outside of this crate (that's why it's `#[non_exhaustive]`). Actually,
-/// never to be instantiated, mmap-ed etc. (Hence [PtrWidth::_never_to_exist] - which can't
-/// fit into any addressable memory).
+/// never to be instantiated, mmap-ed etc. (Hence [PtrWidth::_never_to_exist] - which can't fit into
+/// any addressable memory).
 ///
 /// `W` indicates how many bytes.
 #[non_exhaustive]
@@ -166,8 +166,8 @@ pub const PTR_WIDTH_LABEL_4: PtrWidthLabel = '4';
 pub const PTR_WIDTH_LABEL_8: PtrWidthLabel = '8';
 /// [usize[-wide pointer label. Respective to [PtrWidthS]. _Not_ the same as any other value, even
 /// if the width matches. That prevents hardcoding of any platform's pointer width, or mistakes by
-/// using [PtrWidthS] interchangeably with any other width (even if they happen to be of the same
-/// pointer width on any platform).
+/// using [PTR_WIDTH_LABEL_8] interchangeably with any other width label (even if they happen to be
+/// of the same pointer width on any platform).
 pub const PTR_WIDTH_LABEL_S: PtrWidthLabel = 's';
 
 /// 2 bytes (16 bit) pointer. Respective to [PTR_WIDTH_LABEL_2].
@@ -182,8 +182,6 @@ pub type PtrWidth8 = PtrWidth<PTR_WIDTH_LABEL_8>;
 /// pointer width on any platform).
 pub type PtrWidthS = PtrWidth<PTR_WIDTH_LABEL_S>;
 
-type Bytes<const N: usize> = [u8; N];
-
 /// Unfortunately, we can't just have
 /// ```ignore
 /// impl<const W: char> PtrWidthIndicator for PtrWidth<W> {
@@ -192,28 +190,37 @@ type Bytes<const N: usize> = [u8; N];
 /// }
 /// ```
 /// or anything similar, because that fails @TODO
-impl PtrWidthIndicator for PtrWidth2 {
-    type Ptr = Bytes<2>;
-}
-impl PtrWidthIndicator for PtrWidth4 {
-    type Ptr = Bytes<4>;
-}
-impl PtrWidthIndicator for PtrWidth8 {
-    type Ptr = Bytes<8>;
-}
-impl PtrWidthIndicator for PtrWidthS {
-    #[cfg(target_pointer_width = "16")]
-    type Ptr = Bytes<2>;
-    #[cfg(target_pointer_width = "32")]
-    type Ptr = Bytes<4>;
-    #[cfg(target_pointer_width = "64")]
-    type Ptr = Bytes<8>;
-}
+mod ptr_width_indicator_impls {
+    use crate::{
+        PtrWidth, PtrWidth2, PtrWidth4, PtrWidth8, PtrWidthIndicator, PtrWidthIndicatorSealBase,
+        PtrWidthLabel, PtrWidthS,
+    };
 
-/// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement
-/// [PtrWidthIndicator] for [PtrWidth] (because both [PtrWidthIndicator] and [PtrWidth]
-/// are defined in this crate).
-impl<const PWI: PtrWidthLabel> PtrWidthIndicatorBase for PtrWidth<PWI> {}
+    type Bytes<const N: usize> = [u8; N];
+
+    impl PtrWidthIndicator for PtrWidth2 {
+        type Ptr = Bytes<2>;
+    }
+    impl PtrWidthIndicator for PtrWidth4 {
+        type Ptr = Bytes<4>;
+    }
+    impl PtrWidthIndicator for PtrWidth8 {
+        type Ptr = Bytes<8>;
+    }
+    impl PtrWidthIndicator for PtrWidthS {
+        #[cfg(target_pointer_width = "16")]
+        type Ptr = Bytes<2>;
+        #[cfg(target_pointer_width = "32")]
+        type Ptr = Bytes<4>;
+        #[cfg(target_pointer_width = "64")]
+        type Ptr = Bytes<8>;
+    }
+
+    /// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement
+    /// [PtrWidthIndicator] for [PtrWidth] (because both [PtrWidthIndicator] and [PtrWidth]
+    /// are defined in this crate).
+    impl<const PWI: PtrWidthLabel> PtrWidthIndicatorSealBase for PtrWidth<PWI> {}
+}
 
 // @TODO u16 or wrapper?
 pub const fn as_ptr_width(label: PtrWidthLabel) -> usize {
