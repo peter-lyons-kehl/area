@@ -1,0 +1,4 @@
+Keep this directory, even though there is no source code here. Otherwise ../main.rs -> mod bin ->
+mod types will not resolve.
+
+This file is necessary, because GIT doesn't allow to add/track empty directories.

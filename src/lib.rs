@@ -64,3 +64,21 @@ mod tests {
         pass_no_clone(&s).assure_no_clone();
     }
 }
+
+use core::any::Any;
+
+struct Ref<'a> {
+    _a: core::marker::PhantomData<&'a ()>
+}
+
+fn take_any<T: Any>(_: &T) {}
+
+fn take_ref_static(r: &Ref<'static>) {
+    take_any(r);
+}
+
+type RefStatic = Ref<'static>;
+//impl Ref<'static> {
+impl RefStatic {
+    fn take_ref_static(&self) {}
+}
