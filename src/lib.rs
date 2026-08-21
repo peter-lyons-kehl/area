@@ -3,6 +3,13 @@
 pub mod address;
 pub mod refs_alternatives;
 
+use address::AddrWidthIndicator;
+use core::marker::PhantomData;
+
+pub struct Area<AWI: AddrWidthIndicator> {
+    _awi: PhantomData<AWI>,
+}
+
 mod _assure_no_clone {
     /// Intentionally private.
     struct Empty;
