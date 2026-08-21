@@ -7,7 +7,7 @@ use crate::idx::types::LinkedListNode as LinkedListNodeIdxBased;
 use area::address::{AddrWidthIndicator, AddrWidthS};
 
 pub struct LinkedListNode<'ia, I, AWI: AddrWidthIndicator = AddrWidthS> {
-    i: I,
+    item: I,
 
     //prev: Option<Ref<'ia, LinkedListNode<'ia, I, AWI>, AWI>>,
     //

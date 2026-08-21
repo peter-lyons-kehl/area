@@ -19,8 +19,9 @@ pub struct RefIdx<'_a, _T, AWI: AddrWidthIndicator> {
 // client's code
 pub use RefIdx as Ref;
 
-trait Resolvable2 {
+trait Resolvable22 {
     fn of<'a, T, AWI: AddrWidthIndicator>(&self, a: &'a Area<AWI>) -> refs_bin::Ref<'a, T, AWI>;
+    // verification + pointer arithmetic + cast + wrap
 }
 
 impl<T, AWI: AddrWidthIndicator> RefIdx<'static, T, AWI> {
@@ -31,6 +32,6 @@ impl<T, AWI: AddrWidthIndicator> RefIdx<'static, T, AWI> {
     // IN A TRAIT, so that it DOES conflict when the user tries to (possibly incorrectly) use a
     // 'static-base RefIdx with an Area where that RefIdx doesn't resolve.
     pub fn of<'a>(&self, a: &'a Area<AWI>) -> refs_bin::Ref<'a, T, AWI> {
-        todo!() // verification + pointer arithmetic + cast + wrap
+        unreachable!()
     }
 }
