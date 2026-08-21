@@ -8,7 +8,7 @@ use core::ops::Deref;
 /// Intentionally _not_ [Clone].
 pub struct RefBin<'ta, T, _AWI: AddrWidthIndicator> {
     a: &'ta Area<_AWI>, //@TODO <- unsure
-    
+
     ref_t: &'ta T,
     // _awi: PhantomData<_AWI>,
 }

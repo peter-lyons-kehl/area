@@ -18,7 +18,7 @@ pub struct LinkedListNode<'ia, I, AWI: AddrWidthIndicator = AddrWidthS> {
     //                           needs to be _not_ Self, but RefIdx-based! That is: crate::idx::types::LinkdListNode
     //
     //                           So: It can be Idx-based *all_the_time*.
-    prev: Option<Ref<'ia, LinkedListNodeIdxBased<I, AWI>, AWI>>,
+    prev: Option<Ref<'ia, LinkedListNodeIdxBased<'ia, I, AWI>, AWI>>,
 
-    next: Option<Ref<'ia, LinkedListNodeIdxBased<I, AWI>, AWI>>,
+    next: Option<Ref<'ia, LinkedListNodeIdxBased<'ia, I, AWI>, AWI>>,
 }
