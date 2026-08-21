@@ -192,27 +192,16 @@ impl AsPtrWidth for PtrWidthLabel {
     }
 }
 
-/// Alignment (in bytes).
-pub type Alignment = u16;
-pub const ALIGN_1: Alignment = 1;
-pub const ALIGN_2: Alignment = 2;
-pub const ALIGN_4: Alignment = 4;
-pub const ALIGN_8: Alignment = 8;
-pub const ALIGN_16: Alignment = 16;
-pub const ALIGN_32: Alignment = 32;
-pub const ALIGN_64: Alignment = 64;
-pub const ALIGN_128: Alignment = 128;
-
 /// Generic argument `PWI` (implementing [PtrWidthIndicator]) acts like a `const` generic. This is
 /// necessary until @TODO
-pub struct Pt<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> {
+pub struct Pt<T, PWI: PtrWidthIndicator> {
     //bytes: [u8; PWI::PTR_WIDTH]
     bytes: <PWI as PtrWidthIndicator>::Ptr,
 
     _pwi: core::marker::PhantomData<PWI>,
     _t: core::marker::PhantomData<T>,
 }
-impl<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> Pt<T, PWI, ALIGN> {
+impl<T, PWI: PtrWidthIndicator> Pt<T, PWI> {
     // @TODO consider removing ALIGN; AND:
     //
     // Do we need Alignment = u16? And/or, have a new wrapper around u16.
@@ -220,32 +209,6 @@ impl<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> Pt<T, PWI, ALIGN> {
         core::mem::align_of::<T>()
     }
 }
-trait PtCheck {
-    // @TODO make this actually read, so that it does get linked
-    const CHECK: ();
-}
-impl<T, PWI: PtrWidthIndicator, const ALIGN: Alignment> PtCheck for Pt<T, PWI, ALIGN> {
-    const CHECK: () = {
-        let is_power_of_two = ALIGN.is_power_of_two();
-        if (ALIGN as usize) < core::mem::align_of::<T>() {
-            if is_power_of_two {
-                panic!("Insufficient alignment (and not a power of two)");
-            } else {
-                panic!("Insufficient alignment");
-            }
-        }
-        if ALIGN as usize != core::mem::align_of::<T>() {
-            if is_power_of_two {
-                panic!("Too high alignment (and not a power of two)");
-            } else {
-                // Hmm https://doc.rust-lang.org/core/mem/fn.align_of.html -> "may be smaller than
-                // the preferred alignment"
-                panic!("Too high  alignment");
-            }
-        }
-    };
-}
-
 //-----
 
 // ---------
