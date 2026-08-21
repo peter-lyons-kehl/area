@@ -1,6 +1,7 @@
 #![no_std]
 
-pub mod idx;
+pub mod address;
+pub mod refs_alternatives;
 
 /// Intentionally private.
 struct Empty;
@@ -68,7 +69,7 @@ mod tests {
 use core::any::Any;
 
 struct Ref<'a> {
-    _a: core::marker::PhantomData<&'a ()>
+    _a: core::marker::PhantomData<&'a ()>,
 }
 
 fn take_any<T: Any>(_: &T) {}
