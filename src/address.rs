@@ -95,7 +95,7 @@ pub type AddrWidthLabel = char;
 /// `W` indicates how many bytes.
 #[non_exhaustive]
 pub struct AddrWidth<const W: AddrWidthLabel> {
-    _never_to_exist: [u64; usize::MAX],
+    _never_to_instantiate: [u64; usize::MAX],
 }
 
 /// 2 bytes (16 bit) pointer label. Respective to [AddrWidth2].
@@ -194,11 +194,11 @@ impl AsAddrWidth for AddrWidthLabel {
 
 /// Generic argument `PWI` (implementing [AddrWidthIndicator]) acts like a `const` generic. This is
 /// necessary until @TODO
-pub struct Pt<T, PWI: AddrWidthIndicator> {
+pub struct Pt<T, AWI: AddrWidthIndicator> {
     //bytes: [u8; PWI::ADDR_WIDTH]
-    bytes: <PWI as AddrWidthIndicator>::Addr,
+    bytes: <AWI as AddrWidthIndicator>::Addr,
 
-    _pwi: core::marker::PhantomData<PWI>,
+    _pwi: core::marker::PhantomData<AWI>,
     _t: core::marker::PhantomData<T>,
 }
 impl<T, PWI: AddrWidthIndicator> Pt<T, PWI> {
