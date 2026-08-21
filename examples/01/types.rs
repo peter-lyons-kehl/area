@@ -2,9 +2,23 @@
 // module this file is loaded for.
 use super::refs::Ref;
 
+use crate::idx::types::LinkedListNode as LinkedListNodeIdxBased;
+
 use area::address::{AddrWidthIndicator, AddrWidthS};
 
-pub struct LinkedListNode<'a, T, AWI: AddrWidthIndicator = AddrWidthS> {
-    t: T,
-    next: Option<Ref<'a, LinkedListNode<'a, T, AWI>, AWI>>,
+pub struct LinkedListNode<'ia, I, AWI: AddrWidthIndicator = AddrWidthS> {
+    i: I,
+
+    //prev: Option<Ref<'ia, LinkedListNode<'ia, I, AWI>, AWI>>,
+    //
+    //                      |
+    //
+    //                      \--  when Ref == RefBin: This _inner_ LinkedListNode
+    //
+    //                           needs to be _not_ Self, but RefIdx-based! That is: crate::idx::types::LinkdListNode
+    //
+    //                           So: It can be Idx-based *all_the_time*.
+    prev: Option<Ref<'ia, LinkedListNodeIdxBased<I, AWI>, AWI>>,
+
+    next: Option<Ref<'ia, LinkedListNodeIdxBased<I, AWI>, AWI>>,
 }

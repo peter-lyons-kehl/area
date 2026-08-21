@@ -19,8 +19,18 @@ pub struct RefIdx<'_a, _T, AWI: AddrWidthIndicator> {
 // client's code
 pub use RefIdx as Ref;
 
+trait Resolvable2 {
+    fn of<'a, T, AWI: AddrWidthIndicator>(&self, a: &'a Area<AWI>) -> refs_bin::Ref<'a, T, AWI>;
+}
+
 impl<T, AWI: AddrWidthIndicator> RefIdx<'static, T, AWI> {
-    pub fn of<'a>(a: &'a Area<AWI>) -> refs_bin::Ref<'a, T, AWI> {
-        todo!()
+    // @TODO consider method: leaf_of(&self, a: &'a Area<AWI> -> RefBin<'a, Leaf<T>, AWI>, or even
+    // direct -> &'a T. See crate::refs_alternatives::refs_bins.
+
+    // @TODO KEEP this as a DUPLICATE FUNCTION to an any-lifetime-based function with the same name
+    // IN A TRAIT, so that it DOES conflict when the user tries to (possibly incorrectly) use a
+    // 'static-base RefIdx with an Area where that RefIdx doesn't resolve.
+    pub fn of<'a>(&self, a: &'a Area<AWI>) -> refs_bin::Ref<'a, T, AWI> {
+        todo!() // verification + pointer arithmetic + cast + wrap
     }
 }
