@@ -1,6 +1,6 @@
 #![no_std]
 
-pub mod ptr;
+pub mod idx;
 
 /// Intentionally private.
 struct Empty;
