@@ -2,6 +2,7 @@
 // module this file is loaded for.
 use super::refs::Ref;
 
+use crate::bin::types::LinkedListNode as LinkedListNodeBinBased;
 use crate::idx::types::LinkedListNode as LinkedListNodeIdxBased;
 
 use area::address::{AddrWidthIndicator, AddrWidthS};

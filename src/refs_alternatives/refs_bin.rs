@@ -25,6 +25,10 @@ impl<'_a, '_t: '_a, T, _AWI: AddrWidthIndicator> Deref for RefBin<'_a, 't, T, _A
 
 pub trait ResolvableKids {
     type To;
+
+    // @TODO -> ValBin ??? = trait with a `type`?
+    //
+    // -> LinkedListNodeBinBased, by *value*
     fn resolve<AWI: AddrWidthIndicator>(&self, area: &Area<AWI>) -> &Self::To;
 }
 
@@ -42,5 +46,3 @@ where
         ResolvableKids::resolve(this.ref_t, area)
     }
 }
-//----
-
