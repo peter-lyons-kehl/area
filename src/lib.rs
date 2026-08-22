@@ -6,6 +6,7 @@ pub mod alts;
 use address::AddrWidthIndicator;
 use core::marker::PhantomData;
 
+// @TODO doc invariant
 #[non_exhaustive]
 pub struct Area<'a, AWI: AddrWidthIndicator> {
     _awi: PhantomData<AWI>,
