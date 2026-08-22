@@ -24,25 +24,28 @@ impl<'_a, '_t: '_a, T, _AWI: AddrWidthIndicator> Deref for RefBin<'_a, '_t, T, _
 }
 
 pub trait ResolvableKids {
+    //@TODO generic 'a, 't: 'a, T, _AWI: AddWidthIndicator
     type To;
 
-    // @TODO -> ValBin ??? = trait with a `type`?
+    // @TODO Docs
     //
+    /// -> *value*/passable object, with referenced based on [RefBin]
+    ///
     // -> LinkedListNodeBinBased, by *value*
-    fn resolve<AWI: AddrWidthIndicator>(&self, area: &Area<AWI>) -> &Self::To;
+    fn from<AWI: AddrWidthIndicator>(&self, area: &Area<AWI>) -> &Self::To;
 }
 
 impl<'_a, '_t: '_a, T, _AWI: AddrWidthIndicator> RefBin<'_a, '_t, T, _AWI>
 where
     T: ResolvableKids,
 {
-    /// An alternative to [ResolvableKids::resolve], in case `T` type itself, or its
-    /// another trait, also has a `resolve` method (which would then conflict with
-    /// [ResolvableKids::resolve] if trait [ResolvableKids] were imported).
-    pub fn resolve<'ta, AWI: AddrWidthIndicator>(
+    /// An alternative to [ResolvableKids::from], in case `T` type itself, or its
+    /// another trait, also has a `from` method (which would then conflict with
+    /// [ResolvableKids::from] if trait [ResolvableKids] were imported).
+    pub fn from<'ta, AWI: AddrWidthIndicator>(
         this: &'ta Self,
         area: &'ta Area<AWI>,
     ) -> &'ta <T as ResolvableKids>::To {
-        ResolvableKids::resolve(this.ref_t, area)
+        ResolvableKids::from(this.ref_t, area)
     }
 }
