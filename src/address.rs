@@ -2,7 +2,7 @@
 
 //-----------
 /*
-/** Pointer width choice. As if an enum. */
+/** Address width choice. As if an enum. */
 pub type AddrWidthChoice = u8;
 pub const ADDR_WIDTH_CHOICE_2: AddrWidthChoice = 0;
 pub const ADDR_WIDTH_CHOICE_4: AddrWidthChoice = 1;
@@ -10,7 +10,7 @@ pub const ADDR_WIDTH_CHOICE_8: AddrWidthChoice = 2;
 /// `usize`-like
 pub const ADDR_WIDTH_CHOICE_S: AddrWidthChoice = 3;
 
-/** Pointer width, in bytes. */
+/** Address width, in bytes. */
 pub type AddrWidth = usize;
 pub const ADDR_WIDTH_2: AddrWidth = 2;
 pub const ADDR_WIDTH_4: AddrWidth = 4;
@@ -81,7 +81,7 @@ pub trait AddrWidthIndicator: AddrWidthIndicatorSealBase {
 /// Like an enum. However, it can't be a wrapper/struct/enum because of @TODO.
 pub type AddrWidthLabel = char;
 
-/// Indicate pointer width. This is _not_ going to be an alias to `[u8; N]` (nor to area's internal
+/// Indicate address width. This is _not_ going to be an alias to `[u8; N]` (nor to area's internal
 /// `Bytes<N>`, nor to anything similar), because by having a dedicated type we prevent accidental
 /// mistakes (and we make it more a little more forward compatible once relevant Rust const
 /// generic-related features get stabilized @TODO).
@@ -98,31 +98,31 @@ struct AddrWidth<const W: AddrWidthLabel, const IS_IDX: bool> {
     _never_to_instantiate: [u64; usize::MAX],
 }
 
-/// 2 bytes (16 bit) pointer label. Respective to [AddrWidth2].
+/// 2 bytes (16 bit) address label. Respective to [AddrWidth2].
 const ADDR_WIDTH_LABEL_2: AddrWidthLabel = '2';
-/// 4 bytes (32 bit) pointer label. Respective to [AddrWidth4].
+/// 4 bytes (32 bit) address label. Respective to [AddrWidth4].
 const ADDR_WIDTH_LABEL_4: AddrWidthLabel = '4';
-/// 8 bytes (64 bit) pointer label. Respective to [AddrWidth8].
+/// 8 bytes (64 bit) address label. Respective to [AddrWidth8].
 const ADDR_WIDTH_LABEL_8: AddrWidthLabel = '8';
-/// [usize[-wide pointer label. Respective to [AddrWidthS]. _Not_ the same as any other value, even
-/// if the width matches. That prevents hardcoding of any platform's pointer width, or mistakes by
+/// [usize[-wide address label. Respective to [AddrWidthS]. _Not_ the same as any other value, even
+/// if the width matches. That prevents hardcoding of any platform's address width, or mistakes by
 /// using [ADDR_WIDTH_LABEL_8] interchangeably with any other width label (even if they happen to be
-/// of the same pointer width on any platform).
+/// of the same address width on any platform).
 const ADDR_WIDTH_LABEL_S: AddrWidthLabel = 's';
 
-/// 2 bytes (16 bit) pointer. Respective to [ADDR_WIDTH_LABEL_2].
+/// 2 bytes (16 bit) address. Respective to [ADDR_WIDTH_LABEL_2].
 pub type AddrIdxWidth2 = AddrWidth<ADDR_WIDTH_LABEL_2, true>;
-/// 4 bytes (32 bit) pointer. Respective to [ADDR_WIDTH_LABEL_4].
+/// 4 bytes (32 bit) address. Respective to [ADDR_WIDTH_LABEL_4].
 pub type AddrIdxWidth4 = AddrWidth<ADDR_WIDTH_LABEL_4, true>;
-/// 8 bytes (64 bit) pointer. Respective to [ADDR_WIDTH_LABEL_8].
+/// 8 bytes (64 bit) address. Respective to [ADDR_WIDTH_LABEL_8].
 pub type AddrIdxWidth8 = AddrWidth<ADDR_WIDTH_LABEL_8, true>;
-/// [usize]-wide pointer. Respective to [ADDR_WIDTH_LABEL_S]. _Not_ the same as any other value, even
-/// if the width matches. That prevents hardcoding of any platform's pointer width, or mistakes by
+/// [usize]-wide address. Respective to [ADDR_WIDTH_LABEL_S]. _Not_ the same as any other value, even
+/// if the width matches. That prevents hardcoding of any platform's address width, or mistakes by
 /// using [AddrWidthS] interchangeably with any other width (even if they happen to be of the same
-/// pointer width on any platform).
+/// address width on any platform).
 pub type AddrIdxWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, true>;
 
-/// [usize]-wide pointer.
+/// [usize]-wide address.
 pub type AddrPtrWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, false>;
 
 /// Unfortunately, we can't just have
