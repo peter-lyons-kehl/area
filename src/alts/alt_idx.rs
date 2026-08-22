@@ -13,8 +13,11 @@ use core::marker::PhantomData;
 /// This type is invariant over lifetime '_a, so that `'static` couldn't be accidentally or
 /// intentionally used in place of the expected lifetime. Invariant is ensured by [PhantomData] over
 /// `fn(&'a ())`. See https://doc.rust-lang.org/nomicon/subtyping.html.
+#[repr(C)]
 pub struct RefIdx<'_a, '_t: '_a, _T, AWI: AddrWidthIndicator> {
+    /// This "becomes" [crate::alts::alt_bin::RefBin::ref_t] when `AWI` is [crate::address::AddrPtrWidthS].
     address: <AWI as AddrWidthIndicator>::Addr,
+
     _a: PhantomData<&'_a ()>,
     _t_lifetime: PhantomData<&'_t ()>,
     _t_type: PhantomData<_T>,

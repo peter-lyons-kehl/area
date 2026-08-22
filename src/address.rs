@@ -76,6 +76,15 @@ trait AddrWidthIndicatorSealBase {}
 pub trait AddrWidthIndicator: AddrWidthIndicatorSealBase {
     // @TODO add any traits, like From<...>, or make new traits, if needed
     type Addr;
+
+    // @TODO
+    /// This is &'a Area<'a, _AWI> only for [AddrPtrWidthS], where [crate::alts::alt_bin::RefBin]
+    /// does _not_ need to carry [crate::Area] reference at all, so then it's `()`.
+    type AreaType<'a>;
+    // OR:
+    //
+    type AreaType<'a, _AWI: AddrWidthIndicator>;
+    //const AREA_ARR_SIZE: usize = 1;
 }
 
 /// Like an enum. However, it can't be a wrapper/struct/enum because of @TODO.
@@ -122,7 +131,7 @@ pub type AddrIdxWidth8 = AddrWidth<ADDR_WIDTH_LABEL_8, true>;
 /// address width on any platform).
 pub type AddrIdxWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, true>;
 
-/// [usize]-wide address.
+/// [usize]-wide address POINTER (reference; _not_ an index).
 pub type AddrPtrWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, false>;
 
 /// Unfortunately, we can't just have
