@@ -42,3 +42,17 @@ where
         ResolvableKids::resolve(this.ref_t, area)
     }
 }
+//----
+
+/// This wrapper is invariant over lifetime 'a, so that `'static` couldn't be accidentally or
+/// intentionally used in place of the expected lifetime. That is ensured by [PhantomData] over
+/// `fn(&'a ())`. See https://doc.rust-lang.org/nomicon/subtyping.html.
+pub struct StrictLifetime<'a, T: ?Sized> {
+    inner: &'a T,
+    //_invariant: PhantomData<fn(&'a ()) -> &'a ()>,
+    _invariant: PhantomData<fn(&'a ())>,
+}
+
+/*fn only_strict_lifetime<'a>(given: StrictLifetime<'static, ()>) -> StrictLifetime<'a, ()> {
+    given
+}*/

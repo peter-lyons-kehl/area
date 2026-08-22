@@ -8,7 +8,7 @@ use core::marker::PhantomData;
 //
 // - if no other way, have two conflicting impl of Clone: one blanket for 'static, or for Any?
 
-/// Intentionally _not_ [Clone].
+/// Intentionally _not_ [Clone]. @TODO Enable Clone for 'static, or even for any - since now it's invariant.
 pub struct RefIdx<'_a, _T, AWI: AddrWidthIndicator> {
     bytes: <AWI as AddrWidthIndicator>::Addr,
     _a: PhantomData<&'_a ()>,
@@ -20,7 +20,10 @@ pub struct RefIdx<'_a, _T, AWI: AddrWidthIndicator> {
 pub use RefIdx as Ref;
 
 trait Resolvable22 {
-    fn of<'a, T, AWI: AddrWidthIndicator>(&self, a: &'a Area<AWI>) -> refs_bin::Ref<'a, T, AWI>;
+    fn of<'sa, T, AWI: AddrWidthIndicator>(
+        &'sa self,
+        a: &'sa Area<AWI>,
+    ) -> refs_bin::Ref<'sa, T, AWI>;
     // verification + pointer arithmetic + cast + wrap
 }
 
