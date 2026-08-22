@@ -94,33 +94,36 @@ pub type AddrWidthLabel = char;
 ///
 /// `W` indicates how many bytes.
 #[non_exhaustive]
-pub struct AddrWidth<const W: AddrWidthLabel> {
+struct AddrWidth<const W: AddrWidthLabel, const IS_IDX: bool> {
     _never_to_instantiate: [u64; usize::MAX],
 }
 
 /// 2 bytes (16 bit) pointer label. Respective to [AddrWidth2].
-pub const ADDR_WIDTH_LABEL_2: AddrWidthLabel = '2';
+const ADDR_WIDTH_LABEL_2: AddrWidthLabel = '2';
 /// 4 bytes (32 bit) pointer label. Respective to [AddrWidth4].
-pub const ADDR_WIDTH_LABEL_4: AddrWidthLabel = '4';
+const ADDR_WIDTH_LABEL_4: AddrWidthLabel = '4';
 /// 8 bytes (64 bit) pointer label. Respective to [AddrWidth8].
-pub const ADDR_WIDTH_LABEL_8: AddrWidthLabel = '8';
+const ADDR_WIDTH_LABEL_8: AddrWidthLabel = '8';
 /// [usize[-wide pointer label. Respective to [AddrWidthS]. _Not_ the same as any other value, even
 /// if the width matches. That prevents hardcoding of any platform's pointer width, or mistakes by
 /// using [ADDR_WIDTH_LABEL_8] interchangeably with any other width label (even if they happen to be
 /// of the same pointer width on any platform).
-pub const ADDR_WIDTH_LABEL_S: AddrWidthLabel = 's';
+const ADDR_WIDTH_LABEL_S: AddrWidthLabel = 's';
 
 /// 2 bytes (16 bit) pointer. Respective to [ADDR_WIDTH_LABEL_2].
-pub type AddrWidth2 = AddrWidth<ADDR_WIDTH_LABEL_2>;
+pub type AddrIdxWidth2 = AddrWidth<ADDR_WIDTH_LABEL_2, true>;
 /// 4 bytes (32 bit) pointer. Respective to [ADDR_WIDTH_LABEL_4].
-pub type AddrWidth4 = AddrWidth<ADDR_WIDTH_LABEL_4>;
+pub type AddrIdxWidth4 = AddrWidth<ADDR_WIDTH_LABEL_4, true>;
 /// 8 bytes (64 bit) pointer. Respective to [ADDR_WIDTH_LABEL_8].
-pub type AddrWidth8 = AddrWidth<ADDR_WIDTH_LABEL_8>;
+pub type AddrIdxWidth8 = AddrWidth<ADDR_WIDTH_LABEL_8, true>;
 /// [usize]-wide pointer. Respective to [ADDR_WIDTH_LABEL_S]. _Not_ the same as any other value, even
 /// if the width matches. That prevents hardcoding of any platform's pointer width, or mistakes by
 /// using [AddrWidthS] interchangeably with any other width (even if they happen to be of the same
 /// pointer width on any platform).
-pub type AddrWidthS = AddrWidth<ADDR_WIDTH_LABEL_S>;
+pub type AddrIdxWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, true>;
+
+/// [usize]-wide pointer.
+pub type AddrPtrWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, false>;
 
 /// Unfortunately, we can't just have
 /// ```ignore
@@ -132,22 +135,22 @@ pub type AddrWidthS = AddrWidth<ADDR_WIDTH_LABEL_S>;
 /// or anything similar, because that fails @TODO
 mod addr_width_indicator_impls {
     use super::{
-        AddrWidth, AddrWidth2, AddrWidth4, AddrWidth8, AddrWidthIndicator,
-        AddrWidthIndicatorSealBase, AddrWidthLabel, AddrWidthS,
+        AddrIdxWidth2, AddrIdxWidth4, AddrIdxWidth8, AddrIdxWidthS, AddrWidth, AddrWidthIndicator,
+        AddrWidthIndicatorSealBase, AddrWidthLabel,
     };
 
     type Bytes<const N: usize> = [u8; N];
 
-    impl AddrWidthIndicator for AddrWidth2 {
+    impl AddrWidthIndicator for AddrIdxWidth2 {
         type Addr = Bytes<2>;
     }
-    impl AddrWidthIndicator for AddrWidth4 {
+    impl AddrWidthIndicator for AddrIdxWidth4 {
         type Addr = Bytes<4>;
     }
-    impl AddrWidthIndicator for AddrWidth8 {
+    impl AddrWidthIndicator for AddrIdxWidth8 {
         type Addr = Bytes<8>;
     }
-    impl AddrWidthIndicator for AddrWidthS {
+    impl AddrWidthIndicator for AddrIdxWidthS {
         #[cfg(target_pointer_width = "16")]
         type Addr = Bytes<2>;
         #[cfg(target_pointer_width = "32")]
@@ -159,7 +162,10 @@ mod addr_width_indicator_impls {
     /// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement
     /// [AddrWidthIndicator] for [AddrWidth] (because both [AddrWidthIndicator] and [AddrWidth]
     /// are defined in this crate).
-    impl<const PWI: AddrWidthLabel> AddrWidthIndicatorSealBase for AddrWidth<PWI> {}
+    impl<const PWI: AddrWidthLabel, const IS_IDX: bool> AddrWidthIndicatorSealBase
+        for AddrWidth<PWI, IS_IDX>
+    {
+    }
 }
 
 // @TODO u16 or wrapper?

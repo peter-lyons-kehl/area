@@ -5,9 +5,9 @@ use super::alt::Ref;
 use crate::types::bin::LinkedListNode as LinkedListNodeBinBased;
 use crate::types::idx::LinkedListNode as LinkedListNodeIdxBased;
 
-use area::address::{AddrWidthIndicator, AddrWidthS};
+use area::address::{AddrIdxWidthS, AddrWidthIndicator};
 
-pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrWidthIndicator = AddrWidthS> {
+pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrWidthIndicator = AddrIdxWidthS> {
     item: I,
 
     //prev: Option<Ref<'ia, LinkedListNode<'ia, I, AWI>, AWI>>,
