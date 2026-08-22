@@ -8,7 +8,11 @@ pub mod idx {
         use super::def_lifetimed;
         use area::address::AddrWidthS;
 
-        pub use def_lifetimed::LinkedListNode;
+        //pub use def_lifetimed::LinkedListNode;
+        //
+        // \--- instead of repeating all items to export, "automate":
+        pub use super::def_lifetimed::*;
+
         pub type LinkedListNodeStatic<I, AWI = AddrWidthS> =
             LinkedListNode<'static, 'static, I, AWI>;
     }
