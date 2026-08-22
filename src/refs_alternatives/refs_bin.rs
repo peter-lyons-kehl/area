@@ -16,7 +16,7 @@ pub struct RefBin<'a, 't: 'a, T, _AWI: AddrWidthIndicator> {
 }
 
 // @TODO consider: Instead of T, define this only for a Leaf<T>.
-impl<'_a, '_t: '_a, T, _AWI: AddrWidthIndicator> Deref for RefBin<'_a, 't, T, _AWI> {
+impl<'_a, '_t: '_a, T, _AWI: AddrWidthIndicator> Deref for RefBin<'_a, '_t, T, _AWI> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         self.ref_t
@@ -32,7 +32,7 @@ pub trait ResolvableKids {
     fn resolve<AWI: AddrWidthIndicator>(&self, area: &Area<AWI>) -> &Self::To;
 }
 
-impl<'_ta, T, _AWI: AddrWidthIndicator> RefBin<'_ta, T, _AWI>
+impl<'_a, '_t: '_a, T, _AWI: AddrWidthIndicator> RefBin<'_a, '_t, T, _AWI>
 where
     T: ResolvableKids,
 {

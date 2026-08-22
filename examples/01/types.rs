@@ -7,7 +7,7 @@ use crate::idx::types::LinkedListNode as LinkedListNodeIdxBased;
 
 use area::address::{AddrWidthIndicator, AddrWidthS};
 
-pub struct LinkedListNode<'ia, I, AWI: AddrWidthIndicator = AddrWidthS> {
+pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrWidthIndicator = AddrWidthS> {
     item: I,
 
     //prev: Option<Ref<'ia, LinkedListNode<'ia, I, AWI>, AWI>>,
@@ -19,7 +19,7 @@ pub struct LinkedListNode<'ia, I, AWI: AddrWidthIndicator = AddrWidthS> {
     //                           needs to be _not_ Self, but RefIdx-based! That is: crate::idx::types::LinkdListNode
     //
     //                           So: It can be Idx-based *all_the_time*.
-    prev: Option<Ref<'ia, LinkedListNodeIdxBased<'ia, I, AWI>, AWI>>,
+    prev: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, AWI>, AWI>>,
 
-    next: Option<Ref<'ia, LinkedListNodeIdxBased<'ia, I, AWI>, AWI>>,
+    next: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, AWI>, AWI>>,
 }

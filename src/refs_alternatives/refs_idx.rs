@@ -13,10 +13,11 @@ use core::marker::PhantomData;
 /// This type is invariant over lifetime '_a, so that `'static` couldn't be accidentally or
 /// intentionally used in place of the expected lifetime. That is ensured by [PhantomData] over
 /// `fn(&'a ())`. See https://doc.rust-lang.org/nomicon/subtyping.html.
-pub struct RefIdx<'_a, _T, AWI: AddrWidthIndicator> {
+pub struct RefIdx<'_a, '_t: '_a, _T, AWI: AddrWidthIndicator> {
     address: <AWI as AddrWidthIndicator>::Addr,
     _a: PhantomData<&'_a ()>,
-    _r: PhantomData<_T>,
+    _t_lifetime: PhantomData<&'_t ()>,
+    _t_type: PhantomData<_T>,
     _invariant: PhantomData<fn(&'_a ())>,
 }
 
@@ -24,22 +25,19 @@ pub struct RefIdx<'_a, _T, AWI: AddrWidthIndicator> {
 // client's code
 pub use RefIdx as Ref;
 
-trait Resolvable22 {
-    fn of<'sa, T, AWI: AddrWidthIndicator>(
-        &'sa self,
-        a: &'sa Area<AWI>,
-    ) -> RefBin<'sa, T, AWI>;
+trait Of<'a, 't: 'a, T, AWI: AddrWidthIndicator> {
+    fn of(&self, a: &'a Area<AWI>) -> RefBin<'a, 't, T, AWI>;
     // verification + pointer arithmetic + cast + wrap
 }
 
-impl<T, AWI: AddrWidthIndicator> RefIdx<'static, T, AWI> {
+impl<T, AWI: AddrWidthIndicator> RefIdx<'static, 'static, T, AWI> {
     // @TODO consider method: leaf_of(&self, a: &'a Area<AWI> -> RefBin<'a, Leaf<T>, AWI>, or even
     // direct -> &'a T. See crate::refs_alternatives::refs_bins.
 
-    // @TODO KEEP this as a DUPLICATE FUNCTION to an any-lifetime-based function with the same name
-    // IN A TRAIT, so that it DOES conflict when the user tries to (possibly incorrectly) use a
-    // 'static-base RefIdx with an Area where that RefIdx doesn't resolve.
-    pub fn of<'a>(&self, a: &'a Area<AWI>) -> RefBin<'a, T, AWI> {
+    /// @TODO KEEP this as a DUPLICATE FUNCTION to an any-lifetime-based function [Of::of], so that
+    /// it DOES conflict when the user tries to (possibly incorrectly) use a 'static-base RefIdx
+    /// with an Area where that RefIdx doesn't resolve.
+    pub fn of<'a, 't: 'a>(&self, _: &'a Area<AWI>) -> RefBin<'a, 't, T, AWI> {
         unreachable!("RefIdx::of() is unsupported for 'static")
     }
 }
@@ -51,22 +49,19 @@ pub trait ResolvableChild {
     /// object, and (with a little inconvenience of passing in the parent) we resolve just a
     /// specific field.
     //fn resolve_where<'_a, '_t: '_a, T, AWI: AddrWidthIndicator>(&'_t self, area: &Area<'_a, AWI>) -> Self::To;
-    fn resolve_where<'_a, '_t: '_a, T, AWI: AddrWidthIndicator>(&'_t self, parent: RefBin<'_a, '_t, T, AWI>) -> Self::To;
+    fn resolve_where<'_a, '_t: '_a, T, AWI: AddrWidthIndicator>(
+        &'_t self,
+        parent: RefBin<'_a, '_t, T, AWI>,
+    ) -> Self::To;
 }
 
-//----
-impl<'_a, T, AWI: AddrWidthIndicator> RefIdx<'_a, T, AWI>
-where
-    T: ResolvableChild,
-{
-    /// An alternative to [ResolvableKids::resolve], in case `T` type itself, or its
-    /// another trait, also has a `resolve` method (which would then conflict with
-    /// [ResolvableKids::resolve] if trait [ResolvableKids] were imported).
-    pub fn resolve_where<'_t>(
-        this: &'_t Self,
-        area: &'_a Area<'_a, AWI>,
-    ) -> <T as ResolvableChild>::To {
-        let parent = loop {} as RefBin<'_a, '_t, T, AWI>;
-        ResolvableChild::resolve_where(this, area)
-    }
+/// An alternative to [ResolvableChild::resolve_where], in case `T` type itself, or its another
+/// trait, also has a `resolve_where` method (which would then conflict with
+/// [ResolvableChild::resolve_where] if trait [ResolvableChild] were imported).
+pub fn resolve_where<'_a, '_t: '_a, T: ResolvableChild, AWI: AddrWidthIndicator>(
+    this: &'_t T,
+    parent: RefBin<'_a, '_t, T, AWI>,
+) -> <T as ResolvableChild>::To {
+    let parent = todo!() as RefBin<'_a, '_t, T, AWI>;
+    ResolvableChild::resolve_where(this, parent)
 }

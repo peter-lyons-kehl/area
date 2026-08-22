@@ -9,7 +9,8 @@ pub mod idx {
         use area::address::AddrWidthS;
 
         pub use types_lifetimed::LinkedListNode;
-        pub type LinkedListNodeStatic<I, AWI = AddrWidthS> = LinkedListNode<'static, I, AWI>;
+        pub type LinkedListNodeStatic<I, AWI = AddrWidthS> =
+            LinkedListNode<'static, 'static, I, AWI>;
     }
 }
 
