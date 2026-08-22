@@ -30,13 +30,19 @@ trait Of<'a, 't: 'a, T, AWI: AddrWidthIndicator> {
     // verification + pointer arithmetic + cast + wrap
 }
 
+impl<'a, 't: 'a, T, AWI: AddrWidthIndicator> Of<'a, 't, T, AWI> for RefIdx<'a, 't, T, AWI> {
+    fn of(&self, a: &'a Area<AWI>) -> RefBin<'a, 't, T, AWI> {
+        todo!()
+    }
+}
+
 impl<T, AWI: AddrWidthIndicator> RefIdx<'static, 'static, T, AWI> {
     // @TODO consider method: leaf_of(&self, a: &'a Area<AWI> -> RefBin<'a, Leaf<T>, AWI>, or even
     // direct -> &'a T. See crate::refs_alternatives::refs_bins.
 
-    /// @TODO KEEP this as a DUPLICATE FUNCTION to an any-lifetime-based function [Of::of], so that
-    /// it DOES conflict when the user tries to (possibly incorrectly) use a 'static-base RefIdx
-    /// with an Area where that RefIdx doesn't resolve.
+    /// Intentionally a DUPLICATE to an any-non-static-lifetime-based function [Of::of], so that it
+    /// DOES conflict when the user tries to (possibly incorrectly) use a `'static`-based [RefIdx]
+    /// with an [Area] where that [RefIdx] does _not_ resolve.
     pub fn of<'a, 't: 'a>(&self, _: &'a Area<AWI>) -> RefBin<'a, 't, T, AWI> {
         unreachable!("RefIdx::of() is unsupported for 'static")
     }
