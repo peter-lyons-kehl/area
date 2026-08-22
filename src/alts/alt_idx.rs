@@ -1,6 +1,6 @@
 use crate::Area;
 use crate::address::AddrWidthIndicator;
-use crate::refs_alternatives::refs_bin::RefBin;
+use crate::alts::alt_bin::RefBin;
 use core::marker::PhantomData;
 
 // @TODO consider [Clone], but only for non-static lifetime 'a - so that it's tied to an [Area] by a

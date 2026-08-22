@@ -1,5 +1,5 @@
 pub mod idx {
-    use area::refs_alternatives::refs_idx as refs;
+    use area::alts::alt_idx as refs;
 
     #[path = "../types.rs"]
     mod types_lifetimed;
@@ -15,7 +15,7 @@ pub mod idx {
 }
 
 pub mod bin {
-    use area::refs_alternatives::refs_bin as refs;
+    use area::alts::alt_bin as refs;
 
     #[path = "../types.rs"]
     pub mod types;

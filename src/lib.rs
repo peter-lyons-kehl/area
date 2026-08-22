@@ -1,7 +1,7 @@
 #![no_std]
 
 pub mod address;
-pub mod refs_alternatives;
+pub mod alts;
 
 use address::AddrWidthIndicator;
 use core::marker::PhantomData;
