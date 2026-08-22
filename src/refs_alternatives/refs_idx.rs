@@ -9,10 +9,15 @@ use core::marker::PhantomData;
 // - if no other way, have two conflicting impl of Clone: one blanket for 'static, or for Any?
 
 /// Intentionally _not_ [Clone]. @TODO Enable Clone for 'static, or even for any - since now it's invariant.
+///
+/// This type is invariant over lifetime '_a, so that `'static` couldn't be accidentally or
+/// intentionally used in place of the expected lifetime. That is ensured by [PhantomData] over
+/// `fn(&'a ())`. See https://doc.rust-lang.org/nomicon/subtyping.html.
 pub struct RefIdx<'_a, _T, AWI: AddrWidthIndicator> {
     bytes: <AWI as AddrWidthIndicator>::Addr,
     _a: PhantomData<&'_a ()>,
     _r: PhantomData<_T>,
+    _invariant: PhantomData<fn(&'_a ())>,
 }
 
 // Re-export, primarily for alternative use switching between [RefIdx] and [refs_bin::RefBin] in
@@ -35,6 +40,6 @@ impl<T, AWI: AddrWidthIndicator> RefIdx<'static, T, AWI> {
     // IN A TRAIT, so that it DOES conflict when the user tries to (possibly incorrectly) use a
     // 'static-base RefIdx with an Area where that RefIdx doesn't resolve.
     pub fn of<'a>(&self, a: &'a Area<AWI>) -> refs_bin::Ref<'a, T, AWI> {
-        unreachable!()
+        unreachable!("RefIdx::of() is unsupported for 'static")
     }
 }

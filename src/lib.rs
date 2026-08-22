@@ -6,8 +6,10 @@ pub mod refs_alternatives;
 use address::AddrWidthIndicator;
 use core::marker::PhantomData;
 
-pub struct Area<AWI: AddrWidthIndicator> {
+#[non_exhaustive]
+pub struct Area<'a, AWI: AddrWidthIndicator> {
     _awi: PhantomData<AWI>,
+    _invariant: PhantomData<fn(&'a ())>,
 }
 
 mod _assure_no_clone {
