@@ -84,9 +84,9 @@ pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> {
         Self: 't;
 
     /// Like [super::alt_bin::LoadDirect::from], but when we don't need to resolve other fields of
-    /// the relative object, and (with a little inconvenience of passing in a `relative`) we resolve
+    /// the neighbor object, and (with a little inconvenience of passing in a `neighbor`) we resolve
     /// just a specific field (that is present as [RefIdx]).
-    fn load_by(&'t self, relative: RefBin<'a, 't, T, ARI>) -> Self::To;
+    fn load_by(&'t self, neighbor: RefBin<'a, 't, T, ARI>) -> Self::To;
 }
 // @TODO \---- for what type to implement?
 
@@ -97,11 +97,12 @@ where
 {
     type To = RefBin<'a, 't, T, ARI>;
 
-    fn load_by(&'t self, relative: RefBin<'a, 't, T, ARI>) -> Self::To {
-        self.load_from(relative.area)
+    fn load_by(&'t self, neighbor: RefBin<'a, 't, T, ARI>) -> Self::To {
+        self.load_from(neighbor.area)
     }
 }
 
+/* @TODO - if ever
 impl<'a, T, ARI: AddrReprIndicator> RefIdx<'a, 'static, T, ARI> {
     // Intentionally conflicting with [LoadFromArea::load_from] if `'t` is `'static`, so that it
-}
+}*/

@@ -35,7 +35,7 @@ impl<'_a, '_t: '_a, T, _AWI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _A
     }
 }
 
-// @TODO rename? --> LoadImmediate
+// @TODO rename? --> LoadImmediate, LoadParts, LoadWithParts
 pub trait LoadDirect {
     type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
     where
