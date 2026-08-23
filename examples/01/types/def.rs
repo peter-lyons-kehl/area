@@ -1,13 +1,13 @@
 // This import has to be relative (so _not_ using `crate::...``). The actual type depends on which
 // module this file is loaded for.
-use super::alt::Ref;
+use super::alt::{Ref, VoR};
 
 use crate::types::bin::LinkedListNode as LinkedListNodeBinBased;
 use crate::types::idx::LinkedListNode as LinkedListNodeIdxBased;
 
-use area::address::{AddrIdxWidthS, AddrWidthIndicator};
+use area::address::{AddrIdxWidthS, AddrReprIndicator};
 
-pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrWidthIndicator = AddrIdxWidthS> {
+pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrReprIndicator = AddrIdxWidthS> {
     // @TODO make this a wrapper - either around I, or &I (and in both cases: Deref)
     //
     // \--- <-- GAT AWI:Item<I>
@@ -23,7 +23,7 @@ pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrWidthIndicator = AddrIdxWidthS
     //
     //    \- --> then this wrapper type doesn't need to be a GAT in AWI. Instead, it can be a proper
     //    type in alts::*, for example alts::*::Value.
-    item: I,
+    item: VoR<'i, I>,
 
     //prev: Option<Ref<'ia, LinkedListNode<'ia, I, AWI>, AWI>>,
     //

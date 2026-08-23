@@ -1,7 +1,23 @@
 use crate::Area;
-use crate::address::AddrWidthIndicator;
+use crate::address::AddrReprIndicator;
 use crate::alts::alt_bin::RefBin;
 use core::marker::PhantomData;
+use core::ops::Deref;
+
+// @TODO Once https://github.com/rust-lang/rust/issues/135806 is stabilized, use
+// core::marker::PhantomCovariantLifetime and friends.
+/// VoR = ValueOrRef
+#[repr(transparent)]
+#[non_exhaustive]
+pub struct VoR<'i, I>(I, PhantomData<&'i ()>);
+
+impl<'i, I> Deref for VoR<'i, I> {
+    type Target = I;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 // @TODO consider [Clone], but only for non-static lifetime 'a - so that it's tied to an [Area] by a
 // lifetime.
@@ -14,10 +30,10 @@ use core::marker::PhantomData;
 /// intentionally used in place of the expected lifetime. Invariant is ensured by [PhantomData] over
 /// `fn(&'a ())`. See https://doc.rust-lang.org/nomicon/subtyping.html.
 #[repr(C)]
-pub struct RefIdx<'_a, '_t: '_a, _T, AWI: AddrWidthIndicator> {
+pub struct RefIdx<'_a, '_t: '_a, _T, AWI: AddrReprIndicator> {
     /// This "becomes" [crate::alts::alt_bin::RefBin::ref_t] when `AWI` is
     /// [crate::address::AddrPtrWidthS].
-    address: <AWI as AddrWidthIndicator>::Addr,
+    address: <AWI as AddrReprIndicator>::Addr,
 
     _a: PhantomData<&'_a ()>,
     _t_lifetime: PhantomData<&'_t ()>,
@@ -33,7 +49,7 @@ pub use RefIdx as Ref;
 /// that we can also have the other function with same name [RefIdx::of] implemented directly for
 /// [RefIdx] (with `'static` generic lifetimes), so that those two methods then intentionally
 /// conflict if attempted to be used on [RefIdx] with `'static` lifetime.
-pub trait Of<'a, 't: 'a, T, AWI: AddrWidthIndicator> {
+pub trait Of<'a, 't: 'a, T, AWI: AddrReprIndicator> {
     fn of(&self, a: &'a Area<AWI>) -> RefBin<'a, 't, T, AWI>;
     // \---> @TODO seal the trait
     //
@@ -42,13 +58,13 @@ pub trait Of<'a, 't: 'a, T, AWI: AddrWidthIndicator> {
     // verification + pointer arithmetic + cast + wrap
 }
 
-impl<'a, 't: 'a, T, AWI: AddrWidthIndicator> Of<'a, 't, T, AWI> for RefIdx<'a, 't, T, AWI> {
+impl<'a, 't: 'a, T, AWI: AddrReprIndicator> Of<'a, 't, T, AWI> for RefIdx<'a, 't, T, AWI> {
     fn of(&self, a: &'a Area<AWI>) -> RefBin<'a, 't, T, AWI> {
         todo!()
     }
 }
 
-impl<'a, T, AWI: AddrWidthIndicator> RefIdx<'a, 'static, T, AWI> {
+impl<'a, T, AWI: AddrReprIndicator> RefIdx<'a, 'static, T, AWI> {
     /// Intentionally conflicting with [Of::of] if `'t` is `'static`, so that it DOES conflict when
     /// the user tries to (possibly incorrectly) use a `'static`-based [RefIdx] with an [Area] where
     /// that [RefIdx] does _not_ resolve. See also [Of::of].
@@ -59,14 +75,14 @@ impl<'a, T, AWI: AddrWidthIndicator> RefIdx<'a, 'static, T, AWI> {
 
 /// For more manual/fine grain resolving.
 pub trait ResolvableRelative {
-    type To<'a, 't: 'a, T: 't, AWI: AddrWidthIndicator>
+    type To<'a, 't: 'a, T: 't, AWI: AddrReprIndicator>
     where
         Self: 't;
 
     /// Like [super::alt_bin::ResolvableKids::from], but when we don't need to resolve other fields
-    /// of the relative object, and (with a little inconvenience of passing in a `relative``) we
+    /// of the relative object, and (with a little inconvenience of passing in a `relative`) we
     /// resolve just a specific field (that is present as [RefIdx]).
-    fn by<'a, 't: 'a, T, AWI: AddrWidthIndicator>(
+    fn by<'a, 't: 'a, T, AWI: AddrReprIndicator>(
         &'t self,
         relative: RefBin<'a, 't, T, AWI>,
     ) -> Self::To<'a, 't, T, AWI>;

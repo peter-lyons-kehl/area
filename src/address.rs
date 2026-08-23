@@ -69,17 +69,19 @@ impl<const WC: AddrWidthChoice> TT for BAddr<WC> {
 //
 //struct Seal;
 
-/// For sealing [AddrWidthIndicator] only. Intentionally _not_ public.
-trait AddrWidthIndicatorSealBase {}
+/// For sealing [AddrReprIndicator] only. Intentionally _not_ public.
+trait AddrReprIndicatorSealBase {}
 
 #[allow(private_bounds)]
-pub trait AddrWidthIndicator: AddrWidthIndicatorSealBase {
+pub trait AddrReprIndicator: AddrReprIndicatorSealBase {
     // @TODO add any traits, like From<...>, or make new traits, if needed
     type Addr;
 
     // @TODO
-    /// This is &'a Area<'a, _AWI> only for [AddrPtrWidthS], where [crate::alts::alt_bin::RefBin]
-    /// does _not_ need to carry [crate::Area] reference at all, so then it's `()`.
+    /// - This is a reference to [crate::Area], that is, `&'a Area<'a, _AWI>`, for most `Addr*Repr*`
+    ///   types.
+    /// - This is `()` only for [AddrPtrWidthS], where [crate::alts::alt_bin::RefBin] does _not_
+    /// need to carry [crate::Area] reference at all.
     ///
     /// This has to be [Copy] - for example, [crate::alts::alt_bin::RefBin::from] need it.
     //type AreaType<'a>;
@@ -91,9 +93,10 @@ pub trait AddrWidthIndicator: AddrWidthIndicatorSealBase {
 }
 
 /// Like an enum. However, it can't be a wrapper/struct/enum because of @TODO.
-pub type AddrWidthLabel = char;
+type AddrWidthLabel = char;
 
-/// Indicate address width. This is _not_ going to be an alias to `[u8; N]` (nor to area's internal
+/// Indicate address representation: width, and whether it's an index (rather than a
+/// pointer/reference). This is _not_ going to be an alias to `[u8; N]` (nor to area's internal
 /// `Bytes<N>`, nor to anything similar), because by having a dedicated type we prevent accidental
 /// mistakes (and we make it more a little more forward compatible once relevant Rust const
 /// generic-related features get stabilized @TODO).
@@ -101,12 +104,12 @@ pub type AddrWidthLabel = char;
 /// However, it *will* be (hopefully) replaced with a `const` generic, once @TODO is stabilized.
 ///
 /// Not to be instantiated outside of this crate (that's why it's `#[non_exhaustive]`). Actually,
-/// never to be instantiated, mmap-ed etc. (Hence [AddrWidth::_never_to_exist] - which can't fit into
-/// any addressable memory).
+/// never to be instantiated, mmap-ed etc. (Hence [AddrWidth::_never_to_exist] - which can't fit
+/// into any addressable memory).
 ///
 /// `W` indicates how many bytes.
 #[non_exhaustive]
-struct AddrWidth<const W: AddrWidthLabel, const IS_IDX: bool> {
+struct AddrRepr<const W: AddrWidthLabel, const IS_IDX: bool> {
     _never_to_instantiate: [u64; usize::MAX],
 }
 
@@ -124,27 +127,27 @@ const ADDR_WIDTH_LABEL_S: AddrWidthLabel = 's';
 
 /// 2 bytes (16 bit) address. Respective to [ADDR_WIDTH_LABEL_2].
 #[allow(private_interfaces)]
-pub type AddrIdxWidth2 = AddrWidth<ADDR_WIDTH_LABEL_2, true>;
+pub type AddrIdxWidth2 = AddrRepr<ADDR_WIDTH_LABEL_2, true>;
 /// 4 bytes (32 bit) address. Respective to [ADDR_WIDTH_LABEL_4].
 #[allow(private_interfaces)]
-pub type AddrIdxWidth4 = AddrWidth<ADDR_WIDTH_LABEL_4, true>;
+pub type AddrIdxWidth4 = AddrRepr<ADDR_WIDTH_LABEL_4, true>;
 /// 8 bytes (64 bit) address. Respective to [ADDR_WIDTH_LABEL_8].
 #[allow(private_interfaces)]
-pub type AddrIdxWidth8 = AddrWidth<ADDR_WIDTH_LABEL_8, true>;
+pub type AddrIdxWidth8 = AddrRepr<ADDR_WIDTH_LABEL_8, true>;
 /// [usize]-wide address. Respective to [ADDR_WIDTH_LABEL_S]. _Not_ the same as any other value, even
 /// if the width matches. That prevents hardcoding of any platform's address width, or mistakes by
 /// using [AddrWidthS] interchangeably with any other width (even if they happen to be of the same
 /// address width on any platform).
 #[allow(private_interfaces)]
-pub type AddrIdxWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, true>;
+pub type AddrIdxWidthS = AddrRepr<ADDR_WIDTH_LABEL_S, true>;
 
 /// [usize]-wide address POINTER (reference; _not_ an index).
 #[allow(private_interfaces)]
-pub type AddrPtrWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, false>;
+pub type AddrPtrWidthS = AddrRepr<ADDR_WIDTH_LABEL_S, false>;
 
 /// Unfortunately, we can't just have
 /// ```ignore
-/// impl<const W: char> AddrWidthIndicator for AddrWidth<W> {
+/// impl<const W: char> AddrReprIndicator for AddrWidth<W> {
 ///    type Addr = Bytes< {as_addr_width(W)} >;
 ///    // ...
 /// }
@@ -152,26 +155,26 @@ pub type AddrPtrWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, false>;
 /// or anything similar, because that fails @TODO
 mod addr_width_indicator_impls {
     use super::{
-        AddrIdxWidth2, AddrIdxWidth4, AddrIdxWidth8, AddrIdxWidthS, AddrPtrWidthS, AddrWidth,
-        AddrWidthIndicator, AddrWidthIndicatorSealBase, AddrWidthLabel,
+        AddrIdxWidth2, AddrIdxWidth4, AddrIdxWidth8, AddrIdxWidthS, AddrPtrWidthS, AddrRepr,
+        AddrReprIndicator, AddrReprIndicatorSealBase, AddrWidthLabel,
     };
 
     // @TODO if we change this, it gets *aligned*
     type Bytes<const N: usize> = [u8; N];
 
-    impl AddrWidthIndicator for AddrIdxWidth2 {
+    impl AddrReprIndicator for AddrIdxWidth2 {
         type Addr = Bytes<2>;
         type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidth2>;
     }
-    impl AddrWidthIndicator for AddrIdxWidth4 {
+    impl AddrReprIndicator for AddrIdxWidth4 {
         type Addr = Bytes<4>;
         type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidth4>;
     }
-    impl AddrWidthIndicator for AddrIdxWidth8 {
+    impl AddrReprIndicator for AddrIdxWidth8 {
         type Addr = Bytes<8>;
         type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidth8>;
     }
-    impl AddrWidthIndicator for AddrIdxWidthS {
+    impl AddrReprIndicator for AddrIdxWidthS {
         #[cfg(target_pointer_width = "16")]
         type Addr = Bytes<2>;
         #[cfg(target_pointer_width = "32")]
@@ -182,7 +185,7 @@ mod addr_width_indicator_impls {
         type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidthS>;
     }
 
-    impl AddrWidthIndicator for AddrPtrWidthS {
+    impl AddrReprIndicator for AddrPtrWidthS {
         #[cfg(target_pointer_width = "16")]
         type Addr = Bytes<2>;
         #[cfg(target_pointer_width = "32")]
@@ -194,10 +197,10 @@ mod addr_width_indicator_impls {
     }
 
     /// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement
-    /// [AddrWidthIndicator] for [AddrWidth] (because both [AddrWidthIndicator] and [AddrWidth]
+    /// [AddrReprIndicator] for [AddrWidth] (because both [AddrReprIndicator] and [AddrWidth]
     /// are defined in this crate).
-    impl<const PWI: AddrWidthLabel, const IS_IDX: bool> AddrWidthIndicatorSealBase
-        for AddrWidth<PWI, IS_IDX>
+    impl<const PWI: AddrWidthLabel, const IS_IDX: bool> AddrReprIndicatorSealBase
+        for AddrRepr<PWI, IS_IDX>
     {
     }
 }
@@ -232,16 +235,16 @@ impl AsAddrWidth for AddrWidthLabel {
     }
 }
 
-/// Generic argument `PWI` (implementing [AddrWidthIndicator]) acts like a `const` generic. This is
+/// Generic argument `PWI` (implementing [AddrReprIndicator]) acts like a `const` generic. This is
 /// necessary until @TODO
-pub struct Pt<T, AWI: AddrWidthIndicator> {
+pub struct Pt<T, AWI: AddrReprIndicator> {
     //bytes: [u8; PWI::ADDR_WIDTH]
-    bytes: <AWI as AddrWidthIndicator>::Addr,
+    bytes: <AWI as AddrReprIndicator>::Addr,
 
     _pwi: core::marker::PhantomData<AWI>,
     _t: core::marker::PhantomData<T>,
 }
-impl<T, PWI: AddrWidthIndicator> Pt<T, PWI> {
+impl<T, PWI: AddrReprIndicator> Pt<T, PWI> {
     // @TODO consider removing ALIGN; AND:
     //
     // Do we need Alignment = u16? And/or, have a new wrapper around u16.
@@ -275,7 +278,7 @@ impl<const WW: AddrWidthLabel> CharToWidth for AddrWidth<WW> {
     //type Addr2 = [u8; Self::W]
 }
 
-impl AddrWidthIndicator for AddrWidth<'2'> {
+impl AddrReprIndicator for AddrWidth<'2'> {
     type Addr = Bytes<2>;
     #[allow(private_interfaces)]
     fn sealed(_: Seal) {}

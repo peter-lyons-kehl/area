@@ -3,12 +3,12 @@
 pub mod address;
 pub mod alts;
 
-use address::AddrWidthIndicator;
+use address::AddrReprIndicator;
 use core::marker::PhantomData;
 
 // @TODO doc invariant
 #[non_exhaustive]
-pub struct Area<'a, AWI: AddrWidthIndicator> {
+pub struct Area<'a, AWI: AddrReprIndicator> {
     _awi: PhantomData<AWI>,
     _invariant: PhantomData<fn(&'a ())>,
 }
