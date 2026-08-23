@@ -15,7 +15,6 @@ pub struct RefBin<'a, 't: 'a, T, AWI: AddrWidthIndicator> {
     area: &'a <AWI as AddrWidthIndicator>::AreaRef<'a>,
 }
 
-// @TODO consider: Instead of T, define this only for a Leaf<T>.
 impl<'_a, '_t: '_a, T, _AWI: AddrWidthIndicator> Deref for RefBin<'_a, '_t, T, _AWI> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
@@ -28,17 +27,16 @@ pub trait ResolvableKids {
     where
         Self: 't;
 
-    // @TODO Docs
-    //
     /// -> *value*/passable object, with referenced based on [RefBin]
-    ///
-    // -> LinkedListNodeBinBased, by *value*
-    //
-    // @TODO should it have receiver with a lifetime?: &'t self
     fn from<'a, 't: 'a, T, AWI: AddrWidthIndicator>(
         &self,
         area: &Area<AWI>,
     ) -> Self::To<'a, 't, T, AWI>;
+    // \---> @TODO Docs:
+    //
+    // -> LinkedListNodeBinBased, by *value*
+    //
+    // @TODO should it have receiver with a lifetime?: &'t self
 }
 
 impl<'a, 't: 'a, T, AWI: AddrWidthIndicator> RefBin<'a, 't, T, AWI>
@@ -49,6 +47,6 @@ where
     /// another trait, also has a `from` method (which would then conflict with
     /// [ResolvableKids::from] if trait [ResolvableKids] were imported).
     pub fn from(this: &'t Self, area: &'a Area<AWI>) -> <T as ResolvableKids>::To<'a, 't, T, AWI> {
-        ResolvableKids::from(this.ref_t, area)
+        ResolvableKids::from(/**/ this.ref_t /**/, area)
     }
 }
