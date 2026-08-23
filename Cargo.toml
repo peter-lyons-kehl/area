@@ -6,11 +6,11 @@ edition = "2024"
 license = "BSD-2-Clause OR Apache-2.0 OR MIT"
 
 authors = ["Peter Lyons Kehl<peter.kehl@gmail.com>"]
-description = "zero copy mmap-friendly object graphs with relative pointers/references"
+description = "zero copy mmap-friendly object graphs with index-based pointers/references"
 
 categories = ["development-tools", "no-std", "rust-patterns"]
 
-keywords = ["linking"]
+keywords = ["zerocopy"]
 
 repository = "https://github.com/peter-lyons-kehl/area"
 homepage = "https://github.com/peter-lyons-kehl/area"

@@ -80,10 +80,11 @@ pub trait AddrWidthIndicator: AddrWidthIndicatorSealBase {
     // @TODO
     /// This is &'a Area<'a, _AWI> only for [AddrPtrWidthS], where [crate::alts::alt_bin::RefBin]
     /// does _not_ need to carry [crate::Area] reference at all, so then it's `()`.
-    type AreaType<'a>;
+    //type AreaType<'a>;
+    //
     // OR:
     //
-    type AreaType<'a, _AWI: AddrWidthIndicator>;
+    type AreaRef<'a>;
     //const AREA_ARR_SIZE: usize = 1;
 }
 
@@ -144,20 +145,24 @@ pub type AddrPtrWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, false>;
 /// or anything similar, because that fails @TODO
 mod addr_width_indicator_impls {
     use super::{
-        AddrIdxWidth2, AddrIdxWidth4, AddrIdxWidth8, AddrIdxWidthS, AddrWidth, AddrWidthIndicator,
-        AddrWidthIndicatorSealBase, AddrWidthLabel,
+        AddrIdxWidth2, AddrIdxWidth4, AddrIdxWidth8, AddrIdxWidthS, AddrPtrWidthS, AddrWidth,
+        AddrWidthIndicator, AddrWidthIndicatorSealBase, AddrWidthLabel,
     };
 
+    // @TODO if we change this, it gets *aligned*
     type Bytes<const N: usize> = [u8; N];
 
     impl AddrWidthIndicator for AddrIdxWidth2 {
         type Addr = Bytes<2>;
+        type AreaRef<'a> = crate::Area<'a, AddrIdxWidth2>;
     }
     impl AddrWidthIndicator for AddrIdxWidth4 {
         type Addr = Bytes<4>;
+        type AreaRef<'a> = crate::Area<'a, AddrIdxWidth4>;
     }
     impl AddrWidthIndicator for AddrIdxWidth8 {
         type Addr = Bytes<8>;
+        type AreaRef<'a> = crate::Area<'a, AddrIdxWidth8>;
     }
     impl AddrWidthIndicator for AddrIdxWidthS {
         #[cfg(target_pointer_width = "16")]
@@ -166,6 +171,19 @@ mod addr_width_indicator_impls {
         type Addr = Bytes<4>;
         #[cfg(target_pointer_width = "64")]
         type Addr = Bytes<8>;
+
+        type AreaRef<'a> = crate::Area<'a, AddrIdxWidthS>;
+    }
+
+    impl AddrWidthIndicator for AddrPtrWidthS {
+        #[cfg(target_pointer_width = "16")]
+        type Addr = Bytes<2>;
+        #[cfg(target_pointer_width = "32")]
+        type Addr = Bytes<4>;
+        #[cfg(target_pointer_width = "64")]
+        type Addr = Bytes<8>;
+
+        type AreaRef<'a> = ();
     }
 
     /// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement

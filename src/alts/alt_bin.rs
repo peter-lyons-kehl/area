@@ -9,13 +9,10 @@ pub use RefBin as Ref;
 
 /// Intentionally _not_ [Clone].
 #[repr(C)]
-pub struct RefBin<'a, 't: 'a, T, _AWI: AddrWidthIndicator> {
+pub struct RefBin<'a, 't: 'a, T, AWI: AddrWidthIndicator> {
     ref_t: &'t T,
 
-    // @TODO use assoc type, generic over lifetime
-    area: &'a Area<'a, _AWI>, //@TODO <- unsure
-
-    // _awi: PhantomData<_AWI>,
+    area: &'a <AWI as AddrWidthIndicator>::AreaRef<'a>,
 }
 
 // @TODO consider: Instead of T, define this only for a Leaf<T>.
