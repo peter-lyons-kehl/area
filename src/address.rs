@@ -1,74 +1,3 @@
-//pub trait Referrable {}
-
-//-----------
-/*
-/** Address width choice. As if an enum. */
-pub type AddrWidthChoice = u8;
-pub const ADDR_WIDTH_CHOICE_2: AddrWidthChoice = 0;
-pub const ADDR_WIDTH_CHOICE_4: AddrWidthChoice = 1;
-pub const ADDR_WIDTH_CHOICE_8: AddrWidthChoice = 2;
-/// `usize`-like
-pub const ADDR_WIDTH_CHOICE_S: AddrWidthChoice = 3;
-
-/** Address width, in bytes. */
-pub type AddrWidth = usize;
-pub const ADDR_WIDTH_2: AddrWidth = 2;
-pub const ADDR_WIDTH_4: AddrWidth = 4;
-pub const ADDR_WIDTH_8: AddrWidth = 8;
-
-pub type Align = usize;
-pub type CacheLineWidth = usize;
-
-trait AddrChoiceWidth {
-    const ADDR_WIDTH: AddrWidth;
-}
-
-struct AddrChoiceToWidth<const C: AddrWidthChoice> {}
-impl AddrChoiceWidth for AddrChoiceToWidth<ADDR_WIDTH_CHOICE_2> {
-    const ADDR_WIDTH: AddrWidth = ADDR_WIDTH_2;
-}
-impl AddrChoiceWidth for AddrChoiceToWidth<ADDR_WIDTH_CHOICE_4> {
-    const ADDR_WIDTH: AddrWidth = ADDR_WIDTH_4;
-}
-impl AddrChoiceWidth for AddrChoiceToWidth<ADDR_WIDTH_CHOICE_8> {
-    const ADDR_WIDTH: AddrWidth = ADDR_WIDTH_8;
-}
-impl AddrChoiceWidth for AddrChoiceToWidth<ADDR_WIDTH_CHOICE_S> {
-    const ADDR_WIDTH: AddrWidth = ADDR_WIDTH_8; //@TODO conditional compilation
-}
-
-//struct S<const I: usize, const J: usize> where [(); I+J]:, {}
-struct S<const I: usize, const J: usize> {}
-trait T {}
-impl<const I: usize, const J: usize> T for S<I, J> where [[(); I]; J]: {}
-
-//type AddrBytes<WC> = [u8; AddrChoiceToWidth::< WC >::ADDR_WIDTH];
-//
-//type AddrBytes<const WC: AddrWidthChoice> = [u8; AddrChoiceToWidth::<{ WC }>::ADDR_WIDTH];
-
-pub struct BAddr<const WC: AddrWidthChoice> {
-    //bytes: [u8; WC.ADDR_WIDTH]
-
-    //bytes: [u8; Self::PW]
-
-    //bytes: [u8; AddrChoiceToWidth::<{ WC }>::ADDR_WIDTH]
-}
-trait TT {
-    const PW: usize;
-}
-impl<const WC: AddrWidthChoice> TT for BAddr<WC> {
-    const PW: usize = WC as usize;
-}
-*/
-//-------
-
-// @TODO remove if unused
-//
-// For sealing traits (use as an argument for method(s) that seal a trait). Intentionally _not_
-// public.
-//
-//struct Seal;
-
 /// For sealing [AddrReprIndicator] only. Intentionally _not_ public.
 trait AddrReprIndicatorSealBase {}
 
@@ -80,7 +9,7 @@ pub trait AddrReprIndicator: AddrReprIndicatorSealBase {
     // @TODO
     /// - This is a reference to [crate::Area], that is, `&'a Area<'a, _AWI>`, for most `Addr*Repr*`
     ///   types.
-    /// - This is `()` only for [AddrPtrWidthS], where [crate::alts::alt_bin::RefBin] does _not_
+    /// - This is `()` only for [AddrPtr], where [crate::alts::alt_bin::RefBin] does _not_
     /// need to carry [crate::Area] reference at all.
     ///
     /// This has to be [Copy] - for example, [crate::alts::alt_bin::RefBin::from] need it.
@@ -104,8 +33,8 @@ type AddrWidthLabel = char;
 /// However, it *will* be (hopefully) replaced with a `const` generic, once @TODO is stabilized.
 ///
 /// Not to be instantiated outside of this crate (that's why it's `#[non_exhaustive]`). Actually,
-/// never to be instantiated, mmap-ed etc. (Hence [AddrWidth::_never_to_exist] - which can't fit
-/// into any addressable memory).
+/// never to be instantiated, mmap-ed etc. (Hence [AddrRepr::_never_to_instantiate] - which can't
+/// fit into any addressable memory).
 ///
 /// `W` indicates how many bytes.
 #[non_exhaustive]
@@ -113,68 +42,71 @@ struct AddrRepr<const W: AddrWidthLabel, const IS_IDX: bool> {
     _never_to_instantiate: [u64; usize::MAX],
 }
 
-/// 2 bytes (16 bit) address label. Respective to [AddrIdxWidth2].
-const ADDR_WIDTH_LABEL_2: AddrWidthLabel = '2';
-/// 4 bytes (32 bit) address label. Respective to [AddrIdxWidth4].
-const ADDR_WIDTH_LABEL_4: AddrWidthLabel = '4';
-/// 8 bytes (64 bit) address label. Respective to [AddrIdxWidth8].
-const ADDR_WIDTH_LABEL_8: AddrWidthLabel = '8';
-/// [usize[-wide address label. Respective to [AddrIdxWidthS] and [AddrPtrWidthS]. _Not_ the same as
-/// any other value, even if the width matches. That prevents hardcoding of any platform's address
-/// width, or mistakes by using [ADDR_WIDTH_LABEL_8] interchangeably with any other width label
-/// (even if they happen to be of the same address width on any platform).
+/// 2 bytes (16 bit) address label. Respective to [AddrIdx16].
+const ADDR_WIDTH_LABEL_16: AddrWidthLabel = '2';
+/// 4 bytes (32 bit) address label. Respective to [AddrIdx32].
+const ADDR_WIDTH_LABEL_32: AddrWidthLabel = '4';
+/// 8 bytes (64 bit) address label. Respective to [AddrIdx64].
+const ADDR_WIDTH_LABEL_64: AddrWidthLabel = '8';
+/// [usize[-wide address label. Respective to [AddrIdxS] and [AddrPtr]. _Not_ the same as any other
+/// value, even if the width matches. That prevents hardcoding of any platform's address width.
+///
+/// It also prevents mistakes by using [ADDR_WIDTH_LABEL_S] interchangeably with any other width
+/// label. Even if they happen to be of the same address width on any platform. (For example
+/// [ADDR_WIDTH_LABEL_64] and [ADDR_WIDTH_LABEL_S] having same width on 64-bit platforms.)
 const ADDR_WIDTH_LABEL_S: AddrWidthLabel = 's';
 
-/// 2 bytes (16 bit) address. Respective to [ADDR_WIDTH_LABEL_2].
+/// 2 bytes (16 bit) address. Respective to [ADDR_WIDTH_LABEL_16].
 #[allow(private_interfaces)]
-pub type AddrIdxWidth2 = AddrRepr<ADDR_WIDTH_LABEL_2, true>;
-/// 4 bytes (32 bit) address. Respective to [ADDR_WIDTH_LABEL_4].
+pub type AddrIdx16 = AddrRepr<ADDR_WIDTH_LABEL_16, true>;
+/// 4 bytes (32 bit) address. Respective to [ADDR_WIDTH_LABEL_32].
 #[allow(private_interfaces)]
-pub type AddrIdxWidth4 = AddrRepr<ADDR_WIDTH_LABEL_4, true>;
-/// 8 bytes (64 bit) address. Respective to [ADDR_WIDTH_LABEL_8].
+pub type AddrIdx32 = AddrRepr<ADDR_WIDTH_LABEL_32, true>;
+/// 8 bytes (64 bit) address. Respective to [ADDR_WIDTH_LABEL_64].
 #[allow(private_interfaces)]
-pub type AddrIdxWidth8 = AddrRepr<ADDR_WIDTH_LABEL_8, true>;
-/// [usize]-wide address. Respective to [ADDR_WIDTH_LABEL_S]. _Not_ the same as any other value, even
-/// if the width matches. That prevents hardcoding of any platform's address width, or mistakes by
-/// using [AddrWidthS] interchangeably with any other width (even if they happen to be of the same
-/// address width on any platform).
+pub type AddrIdx64 = AddrRepr<ADDR_WIDTH_LABEL_64, true>;
+
+/// [usize]-wide address. Respective to [ADDR_WIDTH_LABEL_S]. _Not_ the same as any other value,
+/// even if the width matches. That prevents hardcoding of any platform's address width, or mistakes
+/// by using [AddrIdxS] interchangeably with any other address indicator. (Even if they happen to be
+/// of the same address width on any platform). See also [ADDR_WIDTH_LABEL_S].
 #[allow(private_interfaces)]
-pub type AddrIdxWidthS = AddrRepr<ADDR_WIDTH_LABEL_S, true>;
+pub type AddrIdxS = AddrRepr<ADDR_WIDTH_LABEL_S, true>;
 
 /// [usize]-wide address POINTER (reference; _not_ an index).
 #[allow(private_interfaces)]
-pub type AddrPtrWidthS = AddrRepr<ADDR_WIDTH_LABEL_S, false>;
+pub type AddrPtr = AddrRepr<ADDR_WIDTH_LABEL_S, false>;
 
 /// Unfortunately, we can't just have
 /// ```ignore
-/// impl<const W: char> AddrReprIndicator for AddrWidth<W> {
+/// impl<const W: char> AddrReprIndicator for AddrRepr<W> {
 ///    type Addr = Bytes< {as_addr_width(W)} >;
 ///    // ...
 /// }
 /// ```
 /// or anything similar, because that fails @TODO
-mod addr_width_indicator_impls {
+mod addr_repr_indicator_impls {
     use super::{
-        AddrIdxWidth2, AddrIdxWidth4, AddrIdxWidth8, AddrIdxWidthS, AddrPtrWidthS, AddrRepr,
-        AddrReprIndicator, AddrReprIndicatorSealBase, AddrWidthLabel,
+        AddrIdx16, AddrIdx32, AddrIdx64, AddrIdxS, AddrPtr, AddrRepr, AddrReprIndicator,
+        AddrReprIndicatorSealBase, AddrWidthLabel,
     };
 
     // @TODO if we change this, it gets *aligned*
     type Bytes<const N: usize> = [u8; N];
 
-    impl AddrReprIndicator for AddrIdxWidth2 {
+    impl AddrReprIndicator for AddrIdx16 {
         type Addr = Bytes<2>;
-        type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidth2>;
+        type AreaRef<'a> = &'a crate::Area<'a, AddrIdx16>;
     }
-    impl AddrReprIndicator for AddrIdxWidth4 {
+    impl AddrReprIndicator for AddrIdx32 {
         type Addr = Bytes<4>;
-        type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidth4>;
+        type AreaRef<'a> = &'a crate::Area<'a, AddrIdx32>;
     }
-    impl AddrReprIndicator for AddrIdxWidth8 {
+    impl AddrReprIndicator for AddrIdx64 {
         type Addr = Bytes<8>;
-        type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidth8>;
+        type AreaRef<'a> = &'a crate::Area<'a, AddrIdx64>;
     }
-    impl AddrReprIndicator for AddrIdxWidthS {
+    impl AddrReprIndicator for AddrIdxS {
         #[cfg(target_pointer_width = "16")]
         type Addr = Bytes<2>;
         #[cfg(target_pointer_width = "32")]
@@ -182,10 +114,10 @@ mod addr_width_indicator_impls {
         #[cfg(target_pointer_width = "64")]
         type Addr = Bytes<8>;
 
-        type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidthS>;
+        type AreaRef<'a> = &'a crate::Area<'a, AddrIdxS>;
     }
 
-    impl AddrReprIndicator for AddrPtrWidthS {
+    impl AddrReprIndicator for AddrPtr {
         #[cfg(target_pointer_width = "16")]
         type Addr = Bytes<2>;
         #[cfg(target_pointer_width = "32")]
@@ -193,11 +125,13 @@ mod addr_width_indicator_impls {
         #[cfg(target_pointer_width = "64")]
         type Addr = Bytes<8>;
 
+        /// The stored address is already a pointer/reference. It doesn't need to be resolved, so it
+        /// doesn't need [crate::Area].
         type AreaRef<'a> = ();
     }
 
     /// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement
-    /// [AddrReprIndicator] for [AddrWidth] (because both [AddrReprIndicator] and [AddrWidth]
+    /// [AddrReprIndicator] for [AddrRepr] (because both [AddrReprIndicator] and [AddrRepr]
     /// are defined in this crate).
     impl<const PWI: AddrWidthLabel, const IS_IDX: bool> AddrReprIndicatorSealBase
         for AddrRepr<PWI, IS_IDX>
@@ -234,64 +168,3 @@ impl AsAddrWidth for AddrWidthLabel {
         as_addr_width(*self)
     }
 }
-
-/// Generic argument `PWI` (implementing [AddrReprIndicator]) acts like a `const` generic. This is
-/// necessary until @TODO
-pub struct Pt<T, AWI: AddrReprIndicator> {
-    //bytes: [u8; PWI::ADDR_WIDTH]
-    bytes: <AWI as AddrReprIndicator>::Addr,
-
-    _pwi: core::marker::PhantomData<AWI>,
-    _t: core::marker::PhantomData<T>,
-}
-impl<T, PWI: AddrReprIndicator> Pt<T, PWI> {
-    // @TODO consider removing ALIGN; AND:
-    //
-    // Do we need Alignment = u16? And/or, have a new wrapper around u16.
-    pub const fn alignment(&self) -> usize {
-        core::mem::align_of::<T>()
-    }
-}
-//-----
-
-// ---------
-// @TODO remove:
-
-/*trait CharToWidth {
-    const W: usize = unreachable!();
-
-    // Can't have default for associated types:
-    //
-    //type Addr2 = ();
-
-    //type Addr2;
-}
-
-pub struct AddrWidth<const W: AddrWidthLabel> {}
-impl<const WW: AddrWidthLabel> CharToWidth for AddrWidth<WW> {
-    const W: usize = const { if true { 0 } else { unreachable!() } };
-
-    // Can't have the following - it fails with error:
-    //
-    // generic `Self` types are currently not permitted in anonymous constants
-    //
-    //type Addr2 = [u8; Self::W]
-}
-
-impl AddrReprIndicator for AddrWidth<'2'> {
-    type Addr = Bytes<2>;
-    #[allow(private_interfaces)]
-    fn sealed(_: Seal) {}
-}*/
-
-// @TODO examples/docs:
-/*
-pub struct PtConGen<const PWI: AddrWidthLabel, const ALIGN: Alignment> {
-    //bytes: <PWI as AddrWidth>::Addr,
-
-    //bytes:
-
-    //_pwi: core::marker::PhantomData<PWI>,
-}
-impl<const PWI: AddrWidthLabel, const ALIGN: Alignment> PtConGen<PWI, ALIGN> {}
-*/

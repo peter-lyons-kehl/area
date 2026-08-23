@@ -5,16 +5,17 @@ use super::alt::{Ref, VoR};
 use crate::types::bin::LinkedListNode as LinkedListNodeBinBased;
 use crate::types::idx::LinkedListNode as LinkedListNodeIdxBased;
 
-use area::address::{AddrIdxWidthS, AddrReprIndicator};
+use area::address::{AddrIdxS, AddrReprIndicator};
 
-pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrReprIndicator = AddrIdxWidthS> {
+pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrReprIndicator = AddrIdxS> {
     // @TODO make this a wrapper - either around I, or &I (and in both cases: Deref)
     //
     // \--- <-- GAT AWI:Item<I>
     //
-    // - Only RefIdx, and RefBin for AWI being AddrPtrWidthS if returned by reference from the Area,
-    //   have this always as `I` value.
-    // - RefBin (for AWI being AddrIdxWidth*) has this as &I, unless I: Copy and small enough.
+    // - Only RefIdx, and RefBin for AWI being AddrPtr if returned by reference from the Area, have
+    //   this always as `I` value.
+    // - RefBin (for AWI being AddrIdx* but not AddrPtr) has this as &I, unless I: Copy and small
+    //   enough.
     //
     //   \--- <-- GAT AWI:ItemCopy<I>
     //
