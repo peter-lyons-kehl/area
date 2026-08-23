@@ -7,34 +7,34 @@ use crate::types::idx::LinkedListNode as LinkedListNodeIdxBased;
 
 use area::address::{AddrIdxS, AddrReprIndicator};
 
-pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrReprIndicator = AddrIdxS> {
+pub struct LinkedListNode<'a, 'i: 'a, I, ARI: AddrReprIndicator = AddrIdxS> {
     // @TODO make this a wrapper - either around I, or &I (and in both cases: Deref)
     //
-    // \--- <-- GAT AWI:Item<I>
+    // \--- <-- GAT ARI:Item<I>
     //
-    // - Only RefIdx, and RefBin for AWI being AddrPtr if returned by reference from the Area, have
+    // - Only RefIdx, and RefBin for ARI being AddrPtr if returned by reference from the Area, have
     //   this always as `I` value.
-    // - RefBin (for AWI being AddrIdx* but not AddrPtr) has this as &I, unless I: Copy and small
+    // - RefBin (for ARI being AddrIdx* but not AddrPtr) has this as &I, unless I: Copy and small
     //   enough.
     //
-    //   \--- <-- GAT AWI:ItemCopy<I>
+    //   \--- <-- GAT ARI:ItemCopy<I>
     //
-    //  - OR, simplify: *any* RefBin (regardless of AWI) always has it as &I. Let's have Rust/LLVM
+    //  - OR, simplify: *any* RefBin (regardless of ARI) always has it as &I. Let's have Rust/LLVM
     //    optimize it.\
     //
-    //    \- --> then this wrapper type doesn't need to be a GAT in AWI. Instead, it can be a proper
+    //    \- --> then this wrapper type doesn't need to be a GAT in ARI. Instead, it can be a proper
     //    type in alts::*, for example alts::*::Value.
     item: VoR<'i, I>,
 
-    //prev: Option<Ref<'ia, LinkedListNode<'ia, I, AWI>, AWI>>,
+    //prev: Option<Ref<'ia, LinkedListNode<'ia, I, ARI>, ARI>>,
     //
     //                      |
     //
-    //                      \--  when Ref == RefBin: This _inner_ LinkedListNode = from the Area storage = AWI-based
+    //                      \--  when Ref == RefBin: This _inner_ LinkedListNode = from the Area storage = ARI-based
     //
     //                           it needs to be _not_ Self, but RefIdx-based! That is: crate::idx::types::LinkdListNode
     //
     //                           So: It can be, and _has-to-be_, Idx-based *all_the_time*.
-    prev: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, AWI>, AWI>>,
-    next: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, AWI>, AWI>>,
+    prev: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, ARI>, ARI>>,
+    next: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, ARI>, ARI>>,
 }

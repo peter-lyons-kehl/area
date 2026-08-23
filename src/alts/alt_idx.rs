@@ -30,10 +30,10 @@ impl<'i, I> Deref for VoR<'i, I> {
 /// intentionally used in place of the expected lifetime. Invariant is ensured by [PhantomData] over
 /// `fn(&'a ())`. See https://doc.rust-lang.org/nomicon/subtyping.html.
 #[repr(C)]
-pub struct RefIdx<'_a, '_t: '_a, _T, AWI: AddrReprIndicator> {
-    /// This "becomes" [crate::alts::alt_bin::RefBin::ref_t] when `AWI` is
+pub struct RefIdx<'_a, '_t: '_a, _T, ARI: AddrReprIndicator> {
+    /// This "becomes" [crate::alts::alt_bin::RefBin::ref_t] when `ARI` is
     /// [crate::address::AddrPtrWidthS].
-    address: <AWI as AddrReprIndicator>::Addr,
+    address: <ARI as AddrReprIndicator>::Addr,
 
     _a: PhantomData<&'_a ()>,
     _t_lifetime: PhantomData<&'_t ()>,
@@ -49,8 +49,8 @@ pub use RefIdx as Ref;
 /// that we can also have the other function with same name [RefIdx::of] implemented directly for
 /// [RefIdx] (with `'static` generic lifetimes), so that those two methods then intentionally
 /// conflict if attempted to be used on [RefIdx] with `'static` lifetime.
-pub trait Of<'a, 't: 'a, T, AWI: AddrReprIndicator> {
-    fn of(&self, a: &'a Area<AWI>) -> RefBin<'a, 't, T, AWI>;
+pub trait Of<'a, 't: 'a, T, ARI: AddrReprIndicator> {
+    fn of(&self, a: &'a Area<ARI>) -> RefBin<'a, 't, T, ARI>;
     // \---> @TODO seal the trait
     //
     // \---> @TODO should the receiver have 't lifetime??: &'t self
@@ -58,33 +58,33 @@ pub trait Of<'a, 't: 'a, T, AWI: AddrReprIndicator> {
     // verification + pointer arithmetic + cast + wrap
 }
 
-impl<'a, 't: 'a, T, AWI: AddrReprIndicator> Of<'a, 't, T, AWI> for RefIdx<'a, 't, T, AWI> {
-    fn of(&self, a: &'a Area<AWI>) -> RefBin<'a, 't, T, AWI> {
+impl<'a, 't: 'a, T, ARI: AddrReprIndicator> Of<'a, 't, T, ARI> for RefIdx<'a, 't, T, ARI> {
+    fn of(&self, a: &'a Area<ARI>) -> RefBin<'a, 't, T, ARI> {
         todo!()
     }
 }
 
-impl<'a, T, AWI: AddrReprIndicator> RefIdx<'a, 'static, T, AWI> {
+impl<'a, T, ARI: AddrReprIndicator> RefIdx<'a, 'static, T, ARI> {
     /// Intentionally conflicting with [Of::of] if `'t` is `'static`, so that it DOES conflict when
     /// the user tries to (possibly incorrectly) use a `'static`-based [RefIdx] with an [Area] where
     /// that [RefIdx] does _not_ resolve. See also [Of::of].
-    pub fn of<'t: 'a>(&self, _: &'a Area<AWI>) -> RefBin<'a, 't, T, AWI> {
+    pub fn of<'t: 'a>(&self, _: &'a Area<ARI>) -> RefBin<'a, 't, T, ARI> {
         unreachable!("RefIdx::of() is unsupported for 'static Area")
     }
 }
 
 /// For more manual/fine grain resolving.
 pub trait ResolvableRelative {
-    type To<'a, 't: 'a, T: 't, AWI: AddrReprIndicator>
+    type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
     where
         Self: 't;
 
     /// Like [super::alt_bin::ResolvableKids::from], but when we don't need to resolve other fields
     /// of the relative object, and (with a little inconvenience of passing in a `relative`) we
     /// resolve just a specific field (that is present as [RefIdx]).
-    fn by<'a, 't: 'a, T, AWI: AddrReprIndicator>(
+    fn by<'a, 't: 'a, T, ARI: AddrReprIndicator>(
         &'t self,
-        relative: RefBin<'a, 't, T, AWI>,
-    ) -> Self::To<'a, 't, T, AWI>;
+        relative: RefBin<'a, 't, T, ARI>,
+    ) -> Self::To<'a, 't, T, ARI>;
 }
 // @TODO \---- for what type to implement?

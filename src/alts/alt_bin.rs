@@ -22,10 +22,10 @@ impl<'i, I> Deref for VoR<'i, I> {
 
 /// Intentionally _not_ [Clone].
 #[repr(C)]
-pub struct RefBin<'a, 't: 'a, T, AWI: AddrReprIndicator> {
+pub struct RefBin<'a, 't: 'a, T, ARI: AddrReprIndicator> {
     ref_t: &'t T,
 
-    area: <AWI as AddrReprIndicator>::AreaRef<'a>,
+    area: <ARI as AddrReprIndicator>::AreaRef<'a>,
 }
 
 impl<'_a, '_t: '_a, T, _AWI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _AWI> {
@@ -36,16 +36,16 @@ impl<'_a, '_t: '_a, T, _AWI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _A
 }
 
 pub trait ResolvableKids {
-    type To<'a, 't: 'a, T: 't, AWI: AddrReprIndicator>
+    type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
     where
         Self: 't,
-        AWI: 'a;
+        ARI: 'a;
 
     /// -> *value*/passable object, with referenced based on [RefBin]
-    fn from<'a, 't: 'a, T, AWI: AddrReprIndicator>(
+    fn from<'a, 't: 'a, T, ARI: AddrReprIndicator>(
         &self,
-        area: <AWI as AddrReprIndicator>::AreaRef<'a>,
-    ) -> Self::To<'a, 't, T, AWI>;
+        area: <ARI as AddrReprIndicator>::AreaRef<'a>,
+    ) -> Self::To<'a, 't, T, ARI>;
     // \---> @TODO Docs:
     //
     // -> LinkedListNodeBinBased, by *value*
@@ -53,14 +53,14 @@ pub trait ResolvableKids {
     // @TODO should it have receiver with a lifetime?: &'t self
 }
 
-impl<'a, 't: 'a, T, AWI: AddrReprIndicator> RefBin<'a, 't, T, AWI>
+impl<'a, 't: 'a, T, ARI: AddrReprIndicator> RefBin<'a, 't, T, ARI>
 where
     T: ResolvableKids,
 {
     /// A shorter alternative to [ResolvableKids::from] for [RefBin].
     ///
     /// This is why [AddrReprIndicator::AreaRef] has to be [Copy].
-    pub fn from(&'t self) -> <T as ResolvableKids>::To<'a, 't, T, AWI> {
+    pub fn from(&'t self) -> <T as ResolvableKids>::To<'a, 't, T, ARI> {
         ResolvableKids::from(/**/ self.ref_t /**/, self.area)
     }
 }
