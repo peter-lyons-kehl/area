@@ -73,7 +73,7 @@ pub type AddrIdx64 = AddrRepr<ADDR_WIDTH_LABEL_64, true>;
 #[allow(private_interfaces)]
 pub type AddrIdxS = AddrRepr<ADDR_WIDTH_LABEL_S, true>;
 
-/// [usize]-wide address POINTER (reference; _not_ an index).
+/// [usize]-wide address POINTER/reference (_not_ an Area's index).
 #[allow(private_interfaces)]
 pub type AddrPtr = AddrRepr<ADDR_WIDTH_LABEL_S, false>;
 

@@ -30,11 +30,11 @@ pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrReprIndicator = AddrIdxS> {
     //
     //                      |
     //
-    //                      \--  when Ref == RefBin: This _inner_ LinkedListNode
+    //                      \--  when Ref == RefBin: This _inner_ LinkedListNode = from the Area storage = AWI-based
     //
-    //                           needs to be _not_ Self, but RefIdx-based! That is: crate::idx::types::LinkdListNode
+    //                           it needs to be _not_ Self, but RefIdx-based! That is: crate::idx::types::LinkdListNode
     //
-    //                           So: It can be Idx-based *all_the_time*.
+    //                           So: It can be, and _has-to-be_, Idx-based *all_the_time*.
     prev: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, AWI>, AWI>>,
     next: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, AWI>, AWI>>,
 }
