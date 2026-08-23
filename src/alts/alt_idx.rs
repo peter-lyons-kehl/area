@@ -45,12 +45,12 @@ pub struct RefIdx<'_a, '_t: '_a, _T, ARI: AddrReprIndicator> {
 // client's code
 pub use RefIdx as Ref;
 
-/// This trait exists on its own, rather than just implementing [Of::of] directly for [RefIdx], so
-/// that we can also have the other function with same name [RefIdx::of] implemented directly for
-/// [RefIdx] (with `'static` generic lifetimes), so that those two methods then intentionally
-/// conflict if attempted to be used on [RefIdx] with `'static` lifetime.
-pub trait Of<'a, 't: 'a, T, ARI: AddrReprIndicator> {
-    fn of(&self, a: &'a Area<ARI>) -> RefBin<'a, 't, T, ARI>;
+/// This trait exists on its own, rather than just implementing [LoadFromArea::load_from] directly
+/// for [RefIdx], so that we can also have the other function with same name [RefIdx::load_from]
+/// implemented directly for [RefIdx] (with `'static` generic lifetimes), so that those two methods
+/// then intentionally conflict if attempted to be used on [RefIdx] with `'static` lifetime.
+pub trait LoadFromArea<'a, 't: 'a, T, ARI: AddrReprIndicator> {
+    fn load_from(&self, a: <ARI as AddrReprIndicator>::AreaRef<'a>) -> RefBin<'a, 't, T, ARI>;
     // \---> @TODO seal the trait
     //
     // \---> @TODO should the receiver have 't lifetime??: &'t self
@@ -58,33 +58,50 @@ pub trait Of<'a, 't: 'a, T, ARI: AddrReprIndicator> {
     // verification + pointer arithmetic + cast + wrap
 }
 
-impl<'a, 't: 'a, T, ARI: AddrReprIndicator> Of<'a, 't, T, ARI> for RefIdx<'a, 't, T, ARI> {
-    fn of(&self, a: &'a Area<ARI>) -> RefBin<'a, 't, T, ARI> {
+impl<'a, 't: 'a, T, ARI: AddrReprIndicator> LoadFromArea<'a, 't, T, ARI>
+    for RefIdx<'a, 't, T, ARI>
+{
+    fn load_from(&self, a: <ARI as AddrReprIndicator>::AreaRef<'a>) -> RefBin<'a, 't, T, ARI> {
         todo!()
     }
 }
 
-impl<'a, T, ARI: AddrReprIndicator> RefIdx<'a, 'static, T, ARI> {
-    /// Intentionally conflicting with [Of::of] if `'t` is `'static`, so that it DOES conflict when
-    /// the user tries to (possibly incorrectly) use a `'static`-based [RefIdx] with an [Area] where
-    /// that [RefIdx] does _not_ resolve. See also [Of::of].
-    pub fn of<'t: 'a>(&self, _: &'a Area<ARI>) -> RefBin<'a, 't, T, ARI> {
-        unreachable!("RefIdx::of() is unsupported for 'static Area")
+// @TODO this fails with "invariant"
+//
+/*impl<'a, T, ARI: AddrReprIndicator> RefIdx<'a, 'static, T, ARI> {
+    /// Intentionally conflicting with [LoadFromArea::load_from] if `'t` is `'static`, so that it
+    /// DOES conflict when the user tries to (possibly incorrectly) use a `'static`-based [RefIdx]
+    /// with an [Area] where that [RefIdx] does _not_ resolve. See also [LoadFromArea::load_from].
+    pub fn load_from<'t: 'a>(&self, _: <ARI as AddrReprIndicator>::AreaRef<'a>) -> RefBin<'a, 't, T, ARI> {
+        unreachable!("RefIdx::load_from() is unsupported for 'static Area")
     }
-}
+}*/
 
 /// For more manual/fine grain resolving.
-pub trait ResolvableRelative {
-    type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
+pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> {
+    type To
     where
         Self: 't;
 
-    /// Like [super::alt_bin::ResolvableKids::from], but when we don't need to resolve other fields
-    /// of the relative object, and (with a little inconvenience of passing in a `relative`) we
-    /// resolve just a specific field (that is present as [RefIdx]).
-    fn by<'a, 't: 'a, T, ARI: AddrReprIndicator>(
-        &'t self,
-        relative: RefBin<'a, 't, T, ARI>,
-    ) -> Self::To<'a, 't, T, ARI>;
+    /// Like [super::alt_bin::LoadDirect::from], but when we don't need to resolve other fields of
+    /// the relative object, and (with a little inconvenience of passing in a `relative`) we resolve
+    /// just a specific field (that is present as [RefIdx]).
+    fn load_by(&'t self, relative: RefBin<'a, 't, T, ARI>) -> Self::To;
 }
 // @TODO \---- for what type to implement?
+
+impl<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> LoadByNeighbor<'a, 't, T, ARI>
+    for RefIdx<'a, 't, T, ARI>
+where
+    Self: 't,
+{
+    type To = RefBin<'a, 't, T, ARI>;
+
+    fn load_by(&'t self, relative: RefBin<'a, 't, T, ARI>) -> Self::To {
+        self.load_from(relative.area)
+    }
+}
+
+impl<'a, T, ARI: AddrReprIndicator> RefIdx<'a, 'static, T, ARI> {
+    // Intentionally conflicting with [LoadFromArea::load_from] if `'t` is `'static`, so that it
+}

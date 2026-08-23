@@ -25,7 +25,7 @@ impl<'i, I> Deref for VoR<'i, I> {
 pub struct RefBin<'a, 't: 'a, T, ARI: AddrReprIndicator> {
     ref_t: &'t T,
 
-    area: <ARI as AddrReprIndicator>::AreaRef<'a>,
+    pub(crate) area: <ARI as AddrReprIndicator>::AreaRef<'a>,
 }
 
 impl<'_a, '_t: '_a, T, _AWI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _AWI> {
@@ -35,7 +35,8 @@ impl<'_a, '_t: '_a, T, _AWI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _A
     }
 }
 
-pub trait ResolvableKids {
+// @TODO rename? --> LoadImmediate
+pub trait LoadDirect {
     type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
     where
         Self: 't,
@@ -48,19 +49,20 @@ pub trait ResolvableKids {
     ) -> Self::To<'a, 't, T, ARI>;
     // \---> @TODO Docs:
     //
-    // -> LinkedListNodeBinBased, by *value*
+    // -> LinkedListNodeBinBased, returned as an instance
     //
     // @TODO should it have receiver with a lifetime?: &'t self
 }
 
+/// @TODO @TODO USELESS. What can this actually resolve?
 impl<'a, 't: 'a, T, ARI: AddrReprIndicator> RefBin<'a, 't, T, ARI>
 where
-    T: ResolvableKids,
+    T: LoadDirect,
 {
-    /// A shorter alternative to [ResolvableKids::from] for [RefBin].
+    /// A shorter alternative to [LoadDirect::from] for [RefBin].
     ///
     /// This is why [AddrReprIndicator::AreaRef] has to be [Copy].
-    pub fn from(&'t self) -> <T as ResolvableKids>::To<'a, 't, T, ARI> {
-        ResolvableKids::from(/**/ self.ref_t /**/, self.area)
+    pub fn from(&'t self) -> <T as LoadDirect>::To<'a, 't, T, ARI> {
+        LoadDirect::from(/**/ self.ref_t /**/, self.area)
     }
 }
