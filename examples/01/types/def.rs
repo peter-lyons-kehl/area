@@ -20,6 +20,5 @@ pub struct LinkedListNode<'a, 'i: 'a, I, AWI: AddrWidthIndicator = AddrIdxWidthS
     //
     //                           So: It can be Idx-based *all_the_time*.
     prev: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, AWI>, AWI>>,
-
     next: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, AWI>, AWI>>,
 }

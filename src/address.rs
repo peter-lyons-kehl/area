@@ -108,31 +108,36 @@ struct AddrWidth<const W: AddrWidthLabel, const IS_IDX: bool> {
     _never_to_instantiate: [u64; usize::MAX],
 }
 
-/// 2 bytes (16 bit) address label. Respective to [AddrWidth2].
+/// 2 bytes (16 bit) address label. Respective to [AddrIdxWidth2].
 const ADDR_WIDTH_LABEL_2: AddrWidthLabel = '2';
-/// 4 bytes (32 bit) address label. Respective to [AddrWidth4].
+/// 4 bytes (32 bit) address label. Respective to [AddrIdxWidth4].
 const ADDR_WIDTH_LABEL_4: AddrWidthLabel = '4';
-/// 8 bytes (64 bit) address label. Respective to [AddrWidth8].
+/// 8 bytes (64 bit) address label. Respective to [AddrIdxWidth8].
 const ADDR_WIDTH_LABEL_8: AddrWidthLabel = '8';
-/// [usize[-wide address label. Respective to [AddrWidthS]. _Not_ the same as any other value, even
-/// if the width matches. That prevents hardcoding of any platform's address width, or mistakes by
-/// using [ADDR_WIDTH_LABEL_8] interchangeably with any other width label (even if they happen to be
-/// of the same address width on any platform).
+/// [usize[-wide address label. Respective to [AddrIdxWidthS] and [AddrPtrWidthS]. _Not_ the same as
+/// any other value, even if the width matches. That prevents hardcoding of any platform's address
+/// width, or mistakes by using [ADDR_WIDTH_LABEL_8] interchangeably with any other width label
+/// (even if they happen to be of the same address width on any platform).
 const ADDR_WIDTH_LABEL_S: AddrWidthLabel = 's';
 
 /// 2 bytes (16 bit) address. Respective to [ADDR_WIDTH_LABEL_2].
+#[allow(private_interfaces)]
 pub type AddrIdxWidth2 = AddrWidth<ADDR_WIDTH_LABEL_2, true>;
 /// 4 bytes (32 bit) address. Respective to [ADDR_WIDTH_LABEL_4].
+#[allow(private_interfaces)]
 pub type AddrIdxWidth4 = AddrWidth<ADDR_WIDTH_LABEL_4, true>;
 /// 8 bytes (64 bit) address. Respective to [ADDR_WIDTH_LABEL_8].
+#[allow(private_interfaces)]
 pub type AddrIdxWidth8 = AddrWidth<ADDR_WIDTH_LABEL_8, true>;
 /// [usize]-wide address. Respective to [ADDR_WIDTH_LABEL_S]. _Not_ the same as any other value, even
 /// if the width matches. That prevents hardcoding of any platform's address width, or mistakes by
 /// using [AddrWidthS] interchangeably with any other width (even if they happen to be of the same
 /// address width on any platform).
+#[allow(private_interfaces)]
 pub type AddrIdxWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, true>;
 
 /// [usize]-wide address POINTER (reference; _not_ an index).
+#[allow(private_interfaces)]
 pub type AddrPtrWidthS = AddrWidth<ADDR_WIDTH_LABEL_S, false>;
 
 /// Unfortunately, we can't just have
