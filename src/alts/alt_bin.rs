@@ -12,7 +12,7 @@ pub use RefBin as Ref;
 pub struct RefBin<'a, 't: 'a, T, AWI: AddrWidthIndicator> {
     ref_t: &'t T,
 
-    area: &'a <AWI as AddrWidthIndicator>::AreaRef<'a>,
+    area: <AWI as AddrWidthIndicator>::AreaRef<'a>,
 }
 
 impl<'_a, '_t: '_a, T, _AWI: AddrWidthIndicator> Deref for RefBin<'_a, '_t, T, _AWI> {
@@ -25,12 +25,13 @@ impl<'_a, '_t: '_a, T, _AWI: AddrWidthIndicator> Deref for RefBin<'_a, '_t, T, _
 pub trait ResolvableKids {
     type To<'a, 't: 'a, T: 't, AWI: AddrWidthIndicator>
     where
-        Self: 't;
+        Self: 't,
+        AWI: 'a;
 
     /// -> *value*/passable object, with referenced based on [RefBin]
     fn from<'a, 't: 'a, T, AWI: AddrWidthIndicator>(
         &self,
-        area: &Area<AWI>,
+        area: <AWI as AddrWidthIndicator>::AreaRef<'a>,
     ) -> Self::To<'a, 't, T, AWI>;
     // \---> @TODO Docs:
     //
@@ -43,10 +44,10 @@ impl<'a, 't: 'a, T, AWI: AddrWidthIndicator> RefBin<'a, 't, T, AWI>
 where
     T: ResolvableKids,
 {
-    /// An alternative to [ResolvableKids::from], in case `T` type itself, or its
-    /// another trait, also has a `from` method (which would then conflict with
-    /// [ResolvableKids::from] if trait [ResolvableKids] were imported).
-    pub fn from(this: &'t Self, area: &'a Area<AWI>) -> <T as ResolvableKids>::To<'a, 't, T, AWI> {
-        ResolvableKids::from(/**/ this.ref_t /**/, area)
+    /// A shorter alternative to [ResolvableKids::from] for [RefBin].
+    ///
+    /// This is why [AddrWidthIndicator::AreaRef] has to be [Copy].
+    pub fn from(&'t self) -> <T as ResolvableKids>::To<'a, 't, T, AWI> {
+        ResolvableKids::from(/**/ self.ref_t /**/, self.area)
     }
 }

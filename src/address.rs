@@ -80,11 +80,13 @@ pub trait AddrWidthIndicator: AddrWidthIndicatorSealBase {
     // @TODO
     /// This is &'a Area<'a, _AWI> only for [AddrPtrWidthS], where [crate::alts::alt_bin::RefBin]
     /// does _not_ need to carry [crate::Area] reference at all, so then it's `()`.
+    ///
+    /// This has to be [Copy] - for example, [crate::alts::alt_bin::RefBin::from] need it.
     //type AreaType<'a>;
     //
     // OR:
     //
-    type AreaRef<'a>;
+    type AreaRef<'a>: Copy;
     //const AREA_ARR_SIZE: usize = 1;
 }
 
@@ -159,15 +161,15 @@ mod addr_width_indicator_impls {
 
     impl AddrWidthIndicator for AddrIdxWidth2 {
         type Addr = Bytes<2>;
-        type AreaRef<'a> = crate::Area<'a, AddrIdxWidth2>;
+        type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidth2>;
     }
     impl AddrWidthIndicator for AddrIdxWidth4 {
         type Addr = Bytes<4>;
-        type AreaRef<'a> = crate::Area<'a, AddrIdxWidth4>;
+        type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidth4>;
     }
     impl AddrWidthIndicator for AddrIdxWidth8 {
         type Addr = Bytes<8>;
-        type AreaRef<'a> = crate::Area<'a, AddrIdxWidth8>;
+        type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidth8>;
     }
     impl AddrWidthIndicator for AddrIdxWidthS {
         #[cfg(target_pointer_width = "16")]
@@ -177,7 +179,7 @@ mod addr_width_indicator_impls {
         #[cfg(target_pointer_width = "64")]
         type Addr = Bytes<8>;
 
-        type AreaRef<'a> = crate::Area<'a, AddrIdxWidthS>;
+        type AreaRef<'a> = &'a crate::Area<'a, AddrIdxWidthS>;
     }
 
     impl AddrWidthIndicator for AddrPtrWidthS {
