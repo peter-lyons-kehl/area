@@ -23,12 +23,7 @@ impl<'i, I> Deref for VoR<'i, I> {
     }
 }
 
-// @TODO consider [Clone], but only for non-static lifetime 'a - so that it's tied to an [Area] by a
-// lifetime.
-//
-// - if no other way, have two conflicting impl of Clone: one blanket for 'static, or for Any?
-
-/// Intentionally _not_ [Clone]. @TODO Enable Clone for 'static, or even for any - since now it's invariant.
+/// Intentionally _not_ [Clone]. @TODO consider [Clone], or even [Copy] - since now it's invariant over 'a.
 ///
 /// This type is invariant over lifetime '_a, so that `'static` couldn't be accidentally or
 /// intentionally used in place of the expected lifetime. Invariant is ensured by [PhantomData] over
@@ -39,9 +34,8 @@ pub struct RefIdx<'_a, _T, ARI: AddrReprIndicator> {
     /// [crate::address::AddrPtrWidthS].
     address: <ARI as AddrReprIndicator>::Addr,
 
-    _a: PhantomData<&'_a ()>,
+    _a_invariant: PhantomData<&'_a fn(&'_a ())>,
     _t_type: PhantomData<_T>,
-    _invariant: PhantomData<&'_a fn(&'_a ())>,
 }
 
 // @TODO move out of trait, direct into RefIdx
@@ -58,9 +52,7 @@ pub trait LoadFromArea<'a, T, ARI: AddrReprIndicator> {
     // verification + pointer arithmetic + cast + wrap
 }
 
-impl<'a, T, ARI: AddrReprIndicator> LoadFromArea<'a, T, ARI>
-    for RefIdx<'a, T, ARI>
-{
+impl<'a, T, ARI: AddrReprIndicator> LoadFromArea<'a, T, ARI> for RefIdx<'a, T, ARI> {
     fn load_from(&self, a: <ARI as AddrReprIndicator>::AreaRef<'a>) -> RefBin<'a, T, ARI> {
         todo!()
     }
@@ -105,3 +97,33 @@ Self: 't,*/
 impl<'a, T, ARI: AddrReprIndicator> RefIdx<'a, 'static, T, ARI> {
     // Intentionally conflicting with [LoadFromArea::load_from] if `'t` is `'static`, so that it
 }*/
+
+pub trait EnsureInvariant<'a> {
+    //fn self_outlives_a<'s: 'a>(&'s self) ->;
+
+    fn a_outlives_self(a: &'a Self) -> &impl EnsureInvariant<'a>;
+
+    //type Selfie: EnsureInvariant<'a>;
+
+    //type F: Fn(&'a ());
+
+    //type Fm: FnMut()
+}
+impl<'a, 'i, I> EnsureInvariant<'a> for VoRIdx<'i, I>
+/*where
+Self: 'a,*/
+{
+    //fn self_outlives_a<'s: 'a>(&'s self) {}
+
+    fn a_outlives_self(a: &'a Self) -> &Self {
+        a
+    }
+
+    //type Selfie = VoRIdx<'i, I>;
+    //
+    //type Selfie = Self;
+
+    //type F =
+}
+
+pub trait ExtendLifetime {}

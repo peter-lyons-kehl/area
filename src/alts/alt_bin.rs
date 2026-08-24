@@ -7,6 +7,7 @@ use core::ops::Deref;
 // [crate::refs_alternatives::refs_idx::RefIdx] in client's code
 pub use self::{RefBin as Ref, VoRBin as VoR};
 
+// @TODO Clone, or even Copy?
 /// VoR = ValueOrRef
 #[repr(transparent)]
 #[non_exhaustive]
@@ -25,12 +26,13 @@ impl<'i, I> Deref for VoR<'i, I> {
     }
 }
 
-/// Intentionally _not_ [Clone].
+/// Intentionally _not_ [Clone]. @TODO consider [Clone], or even [Copy] - since now it's invariant over 'a.
 #[repr(C)]
 pub struct RefBin<'a, T, ARI: AddrReprIndicator> {
     ref_t: &'a T,
 
     pub(crate) area: <ARI as AddrReprIndicator>::AreaRef<'a>,
+    _a_invariant: PhantomData<&'a fn(&'a ())>,
 }
 
 impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator> Deref for RefBin<'_a, T, _ARI> {

@@ -43,13 +43,15 @@ impl<'a, I: 'a, ARI: AddrReprIndicator + 'a> Loadable<'a, ARI>
     type To = LinkedListNodeBinBased<'a, I, ARI>;
 
     fn load(&self, _area: <ARI as area::address::AddrReprIndicator>::AreaRef<'a>) -> Self::To {
-
         //@TODO
-        /*LinkedListNodeBinBased {
-            item: VoRBin::new(&self.item),
+
+        //let _: LinkedListNodeBinBased<'_, _, ARI> = LinkedListNodeBinBased {
+        let result = LinkedListNodeBinBased::<'_, _, ARI> {
+            item: VoRBin::new(&*self.item),
             prev: None,
-            next: None
-        }*/
-        todo!()
+            next: None,
+        };
+        unsafe { core::mem::transmute(result) }
+        //todo!()
     }
 }
