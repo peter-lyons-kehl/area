@@ -1,3 +1,8 @@
+//@TODO rename this file, and module: loader --> def_etc
+
+//use area::alts::alt_bin::RefBin;
+use area::alts::alt_bin::Loadable;
+
 pub mod idx {
     use area::alts::alt_idx as alt;
 
@@ -23,3 +28,5 @@ pub mod bin {
     #[path = "../../def.rs"]
     pub mod def;
 }
+
+//impl<'a, 'i: 'a, I, ARI: AddrReprIndicator> Loadable for

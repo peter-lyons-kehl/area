@@ -2,9 +2,7 @@
 // module this file is loaded for.
 use super::alt::{Ref, VoR};
 
-use crate::types::bin::LinkedListNode as LinkedListNodeBinBased;
-use crate::types::idx::LinkedListNode as LinkedListNodeIdxBased;
-
+use crate::types::LinkedListNodeIdxBased;
 use area::address::{AddrIdxS, AddrReprIndicator};
 
 pub struct LinkedListNode<'a, 'i: 'a, I, ARI: AddrReprIndicator = AddrIdxS> {
