@@ -81,9 +81,7 @@ impl<'a, 't: 'a, T, ARI: AddrReprIndicator> LoadFromArea<'a, 't, T, ARI>
 // @TODO move out of the trait, into RefIdx
 /// For more manual/fine grain resolving.
 pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> {
-    type To
-    where
-        Self: 't;
+    type To;
 
     /// Like [super::alt_bin::Loadable::load], but when we don't need to resolve other fields of
     /// the neighbor object, and (with a little inconvenience of passing in a `neighbor`) we resolve
@@ -94,8 +92,8 @@ pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> {
 
 impl<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> LoadByNeighbor<'a, 't, T, ARI>
     for RefIdx<'a, 't, T, ARI>
-where
-    Self: 't,
+/*where
+Self: 't,*/
 {
     type To = RefBin<'a, 't, T, ARI>;
 

@@ -32,11 +32,15 @@ pub mod bin {
     pub mod def;
 }
 
+impl<'a, 'i: 'a, I, ARI: AddrReprIndicator> Loadable<'a, ARI>
+    for LinkedListNodeIdxBased<'a, 'i, I, ARI>
+// @TODO why do we need the following bound?
+where
+    Self: 'i,
+{
+    type To = LinkedListNodeBinBased<'a, 'i, I, ARI>;
 
-impl<'a, 'i: 'a, I, ARI: AddrReprIndicator> Loadable<'a, ARI> for LinkedListNodeIdxBased<'a, 'i, I, ARI> {
-    type To = LinkedListNodeBinBased<'a, 'i, ARI>;
-    fn load(&self, area: <ARI as area::address::AddrReprIndicator>::AreaRef<'a>) -> Self::To {
-        
+    fn load(&self, _area: <ARI as area::address::AddrReprIndicator>::AreaRef<'a>) -> Self::To {
+        todo!()
     }
 }
-
