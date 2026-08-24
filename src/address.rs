@@ -7,7 +7,7 @@ pub trait AddrReprIndicator: AddrReprIndicatorSealBase {
     type Addr;
 
     // @TODO
-    /// - This is a reference to [crate::Area], that is, `&'a Area<'a, _AWI>`, for most `Addr*Repr*`
+    /// - This is a reference to [crate::Area], that is, `&'a Area<'a, _ARI>`, for most `Addr*Repr*`
     ///   types.
     /// - This is `()` only for [AddrPtr], where [crate::alts::alt_bin::RefBin] does _not_
     /// need to carry [crate::Area] reference at all.

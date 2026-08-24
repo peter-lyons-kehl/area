@@ -28,7 +28,7 @@ impl<'i, I> Deref for VoR<'i, I> {
 ///
 /// This type is invariant over lifetime '_a, so that `'static` couldn't be accidentally or
 /// intentionally used in place of the expected lifetime. Invariant is ensured by [PhantomData] over
-/// `fn(&'a ())`. See https://doc.rust-lang.org/nomicon/subtyping.html.
+/// `&'_a fn(&'_a ())`. See https://doc.rust-lang.org/nomicon/subtyping.html.
 #[repr(C)]
 pub struct RefIdx<'_a, '_t: '_a, _T, ARI: AddrReprIndicator> {
     /// This "becomes" [crate::alts::alt_bin::RefBin::ref_t] when `ARI` is
@@ -38,13 +38,14 @@ pub struct RefIdx<'_a, '_t: '_a, _T, ARI: AddrReprIndicator> {
     _a: PhantomData<&'_a ()>,
     _t_lifetime: PhantomData<&'_t ()>,
     _t_type: PhantomData<_T>,
-    _invariant: PhantomData<fn(&'_a ())>,
+    _invariant: PhantomData<&'_a fn(&'_a ())>,
 }
 
 // Re-export, primarily for alternative use switching between [RefIdx] and [refs_bin::RefBin] in
 // client's code
 pub use RefIdx as Ref;
 
+// @TODO move out of trait, direct into RefIdx
 /// This trait exists on its own, rather than just implementing [LoadFromArea::load_from] directly
 /// for [RefIdx], so that we can also have the other function with same name [RefIdx::load_from]
 /// implemented directly for [RefIdx] (with `'static` generic lifetimes), so that those two methods
@@ -77,6 +78,7 @@ impl<'a, 't: 'a, T, ARI: AddrReprIndicator> LoadFromArea<'a, 't, T, ARI>
     }
 }*/
 
+// @TODO move out of the trait, into RefIdx
 /// For more manual/fine grain resolving.
 pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> {
     type To

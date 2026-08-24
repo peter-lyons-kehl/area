@@ -28,7 +28,7 @@ pub struct RefBin<'a, 't: 'a, T, ARI: AddrReprIndicator> {
     pub(crate) area: <ARI as AddrReprIndicator>::AreaRef<'a>,
 }
 
-impl<'_a, '_t: '_a, T, _AWI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _AWI> {
+impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _ARI> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         self.ref_t
@@ -36,6 +36,8 @@ impl<'_a, '_t: '_a, T, _AWI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _A
 }
 
 // @TODO rename? --> LoadImmediate, LoadParts, LoadWithParts, LoadNear, LoadTangernt, LoadJoined, LoadVerges, LoadTouching, LoadNigh
+//
+// --> Loadable
 pub trait LoadDirect {
     type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
     where
