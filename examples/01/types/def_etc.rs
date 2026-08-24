@@ -1,4 +1,5 @@
 //use area::alts::alt_bin::RefBin;
+use area::address::AddrReprIndicator;
 use area::alts::alt_bin::Loadable;
 //use area::alts::alt_idx::
 use super::{LinkedListNodeBinBased, LinkedListNodeIdxBased};
@@ -31,11 +32,11 @@ pub mod bin {
     pub mod def;
 }
 
-/*
-impl<'a, 'i: 'a, I, ARI: AddrReprIndicator> Loadable for LinkedListNodeIdxBased<'a, 'i, ARI> {
-    type To<'a, 't: 'a, T: 't, ARI: area::address::AddrReprIndicator> = LinkedListNodeBinBased<'a, 'i, ARI>
-        where
-            Self: 't,
-            ARI: 'a;
+
+impl<'a, 'i: 'a, I, ARI: AddrReprIndicator> Loadable<'a, ARI> for LinkedListNodeIdxBased<'a, 'i, I, ARI> {
+    type To = LinkedListNodeBinBased<'a, 'i, ARI>;
+    fn load(&self, area: <ARI as area::address::AddrReprIndicator>::AreaRef<'a>) -> Self::To {
+        
+    }
 }
-*/
+
