@@ -5,12 +5,17 @@ use core::ops::Deref;
 
 // Re-export, primarily for alternatives by switching between [RefBin] and
 // [crate::refs_alternatives::refs_idx::RefIdx] in client's code
-pub use RefBin as Ref;
+pub use self::{RefBin as Ref, VoRBin as VoR};
 
 /// VoR = ValueOrRef
 #[repr(transparent)]
 #[non_exhaustive]
-pub struct VoR<'i, I>(&'i I);
+pub struct VoRBin<'i, I>(&'i I);
+impl<'i, I> VoRBin<'i, I> {
+    pub fn new(ri: &'i I) -> Self {
+        Self(ri)
+    }
+}
 
 impl<'i, I> Deref for VoR<'i, I> {
     type Target = I;

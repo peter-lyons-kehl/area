@@ -22,7 +22,7 @@ pub struct LinkedListNode<'a, 'i: 'a, I, ARI: AddrReprIndicator = AddrIdxS> {
     //
     //    \- --> then this wrapper type doesn't need to be a GAT in ARI. Instead, it can be a proper
     //    type in alts::*, for example alts::*::Value.
-    item: VoR<'i, I>,
+    pub(crate) item: VoR<'i, I>,
 
     //prev: Option<Ref<'ia, LinkedListNode<'ia, I, ARI>, ARI>>,
     //
@@ -33,6 +33,6 @@ pub struct LinkedListNode<'a, 'i: 'a, I, ARI: AddrReprIndicator = AddrIdxS> {
     //                           it needs to be _not_ Self, but RefIdx-based! That is: crate::idx::types::LinkdListNode
     //
     //                           So: It can be, and _has-to-be_, Idx-based *all_the_time*.
-    prev: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, ARI>, ARI>>,
-    next: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, ARI>, ARI>>,
+    pub(crate) prev: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, ARI>, ARI>>,
+    pub(crate) next: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, ARI>, ARI>>,
 }

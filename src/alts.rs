@@ -1,2 +1,5 @@
 pub mod alt_bin;
 pub mod alt_idx;
+
+pub use alt_bin::VoRBin;
+pub use alt_idx::VoRIdx;

@@ -4,12 +4,16 @@ use crate::alts::alt_bin::RefBin;
 use core::marker::PhantomData;
 use core::ops::Deref;
 
+// Re-export, primarily for alternative use switching between [RefIdx] and [refs_bin::RefBin] in
+// client's code
+pub use self::{RefIdx as Ref, VoRIdx as VoR};
+
 // @TODO Once https://github.com/rust-lang/rust/issues/135806 is stabilized, use
 // core::marker::PhantomCovariantLifetime and friends.
 /// VoR = ValueOrRef
 #[repr(transparent)]
 #[non_exhaustive]
-pub struct VoR<'i, I>(I, PhantomData<&'i ()>);
+pub struct VoRIdx<'i, I>(I, PhantomData<&'i ()>);
 
 impl<'i, I> Deref for VoR<'i, I> {
     type Target = I;
@@ -40,10 +44,6 @@ pub struct RefIdx<'_a, '_t: '_a, _T, ARI: AddrReprIndicator> {
     _t_type: PhantomData<_T>,
     _invariant: PhantomData<&'_a fn(&'_a ())>,
 }
-
-// Re-export, primarily for alternative use switching between [RefIdx] and [refs_bin::RefBin] in
-// client's code
-pub use RefIdx as Ref;
 
 // @TODO move out of trait, direct into RefIdx
 /// This trait exists on its own, rather than just implementing [LoadFromArea::load_from] directly

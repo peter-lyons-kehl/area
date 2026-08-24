@@ -1,5 +1,6 @@
 //use area::alts::alt_bin::RefBin;
 use area::address::AddrReprIndicator;
+use area::alts::VoRBin;
 use area::alts::alt_bin::Loadable;
 //use area::alts::alt_idx::
 use super::{LinkedListNodeBinBased, LinkedListNodeIdxBased};
@@ -41,6 +42,11 @@ where
     type To = LinkedListNodeBinBased<'a, 'i, I, ARI>;
 
     fn load(&self, _area: <ARI as area::address::AddrReprIndicator>::AreaRef<'a>) -> Self::To {
+        /*LinkedListNodeBinBased {
+            item: VoRBin::new(&self.item),
+            prev: None,
+            next: None
+        }*/
         todo!()
     }
 }
