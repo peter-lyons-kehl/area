@@ -1,5 +1,3 @@
-//@TODO rename this file, and module: loader --> def_etc
-
 //use area::alts::alt_bin::RefBin;
 use area::alts::alt_bin::Loadable;
 
