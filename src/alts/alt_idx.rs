@@ -34,13 +34,12 @@ impl<'i, I> Deref for VoR<'i, I> {
 /// intentionally used in place of the expected lifetime. Invariant is ensured by [PhantomData] over
 /// `&'_a fn(&'_a ())`. See https://doc.rust-lang.org/nomicon/subtyping.html.
 #[repr(C)]
-pub struct RefIdx<'_a, '_t: '_a, _T, ARI: AddrReprIndicator> {
+pub struct RefIdx<'_a, _T, ARI: AddrReprIndicator> {
     /// This "becomes" [crate::alts::alt_bin::RefBin::ref_t] when `ARI` is
     /// [crate::address::AddrPtrWidthS].
     address: <ARI as AddrReprIndicator>::Addr,
 
     _a: PhantomData<&'_a ()>,
-    _t_lifetime: PhantomData<&'_t ()>,
     _t_type: PhantomData<_T>,
     _invariant: PhantomData<&'_a fn(&'_a ())>,
 }
@@ -50,8 +49,8 @@ pub struct RefIdx<'_a, '_t: '_a, _T, ARI: AddrReprIndicator> {
 /// for [RefIdx], so that we can also have the other function with same name [RefIdx::load_from]
 /// implemented directly for [RefIdx] (with `'static` generic lifetimes), so that those two methods
 /// then intentionally conflict if attempted to be used on [RefIdx] with `'static` lifetime.
-pub trait LoadFromArea<'a, 't: 'a, T, ARI: AddrReprIndicator> {
-    fn load_from(&self, a: <ARI as AddrReprIndicator>::AreaRef<'a>) -> RefBin<'a, 't, T, ARI>;
+pub trait LoadFromArea<'a, T, ARI: AddrReprIndicator> {
+    fn load_from(&self, a: <ARI as AddrReprIndicator>::AreaRef<'a>) -> RefBin<'a, T, ARI>;
     // \---> @TODO seal the trait
     //
     // \---> @TODO should the receiver have 't lifetime??: &'t self
@@ -59,10 +58,10 @@ pub trait LoadFromArea<'a, 't: 'a, T, ARI: AddrReprIndicator> {
     // verification + pointer arithmetic + cast + wrap
 }
 
-impl<'a, 't: 'a, T, ARI: AddrReprIndicator> LoadFromArea<'a, 't, T, ARI>
-    for RefIdx<'a, 't, T, ARI>
+impl<'a, T, ARI: AddrReprIndicator> LoadFromArea<'a, T, ARI>
+    for RefIdx<'a, T, ARI>
 {
-    fn load_from(&self, a: <ARI as AddrReprIndicator>::AreaRef<'a>) -> RefBin<'a, 't, T, ARI> {
+    fn load_from(&self, a: <ARI as AddrReprIndicator>::AreaRef<'a>) -> RefBin<'a, T, ARI> {
         todo!()
     }
 }
@@ -86,18 +85,18 @@ pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> {
     /// Like [super::alt_bin::Loadable::load], but when we don't need to resolve other fields of
     /// the neighbor object, and (with a little inconvenience of passing in a `neighbor`) we resolve
     /// just a specific field (that is present as [RefIdx]).
-    fn load_by(&'t self, neighbor: RefBin<'a, 't, T, ARI>) -> Self::To;
+    fn load_by(&'t self, neighbor: RefBin<'a, T, ARI>) -> Self::To;
 }
 // @TODO \---- for what type to implement?
 
 impl<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> LoadByNeighbor<'a, 't, T, ARI>
-    for RefIdx<'a, 't, T, ARI>
+    for RefIdx<'a, T, ARI>
 /*where
 Self: 't,*/
 {
-    type To = RefBin<'a, 't, T, ARI>;
+    type To = RefBin<'a, T, ARI>;
 
-    fn load_by(&'t self, neighbor: RefBin<'a, 't, T, ARI>) -> Self::To {
+    fn load_by(&'t self, neighbor: RefBin<'a, T, ARI>) -> Self::To {
         self.load_from(neighbor.area)
     }
 }

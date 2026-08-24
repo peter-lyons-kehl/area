@@ -27,13 +27,13 @@ impl<'i, I> Deref for VoR<'i, I> {
 
 /// Intentionally _not_ [Clone].
 #[repr(C)]
-pub struct RefBin<'a, 't: 'a, T, ARI: AddrReprIndicator> {
-    ref_t: &'t T,
+pub struct RefBin<'a, T, ARI: AddrReprIndicator> {
+    ref_t: &'a T,
 
     pub(crate) area: <ARI as AddrReprIndicator>::AreaRef<'a>,
 }
 
-impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _ARI> {
+impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator> Deref for RefBin<'_a, T, _ARI> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         self.ref_t
@@ -66,14 +66,14 @@ pub trait Loadable<'a, ARI: AddrReprIndicator> {
 }
 
 /// @TODO @TODO USELESS. What can this actually resolve?
-impl<'a, 't: 'a, T, ARI: AddrReprIndicator> RefBin<'a, 't, T, ARI>
+impl<'a, T, ARI: AddrReprIndicator> RefBin<'a, T, ARI>
 where
     T: Loadable<'a, ARI>,
 {
     /// A shorter alternative to [Loadable::load] for [RefBin].
     ///
     /// This is why [AddrReprIndicator::AreaRef] has to be [Copy].
-    pub fn load(&'t self) -> <T as Loadable<'a, ARI>>::To {
+    pub fn load(&'a self) -> <T as Loadable<'a, ARI>>::To {
         Loadable::load(/**/ self.ref_t /**/, self.area)
     }
 }

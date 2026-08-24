@@ -5,7 +5,7 @@ use super::alt::{Ref, VoR};
 use crate::types::LinkedListNodeIdxBased;
 use area::address::{AddrIdxS, AddrReprIndicator};
 
-pub struct LinkedListNode<'a, 'i: 'a, I, ARI: AddrReprIndicator = AddrIdxS> {
+pub struct LinkedListNode<'a, I, ARI: AddrReprIndicator = AddrIdxS> {
     // @TODO make this a wrapper - either around I, or &I (and in both cases: Deref)
     //
     // \--- <-- GAT ARI:Item<I>
@@ -22,7 +22,7 @@ pub struct LinkedListNode<'a, 'i: 'a, I, ARI: AddrReprIndicator = AddrIdxS> {
     //
     //    \- --> then this wrapper type doesn't need to be a GAT in ARI. Instead, it can be a proper
     //    type in alts::*, for example alts::*::Value.
-    pub(crate) item: VoR<'i, I>,
+    pub(crate) item: VoR<'a, I>,
 
     //prev: Option<Ref<'ia, LinkedListNode<'ia, I, ARI>, ARI>>,
     //
@@ -33,6 +33,6 @@ pub struct LinkedListNode<'a, 'i: 'a, I, ARI: AddrReprIndicator = AddrIdxS> {
     //                           it needs to be _not_ Self, but RefIdx-based! That is: crate::idx::types::LinkdListNode
     //
     //                           So: It can be, and _has-to-be_, Idx-based *all_the_time*.
-    pub(crate) prev: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, ARI>, ARI>>,
-    pub(crate) next: Option<Ref<'a, 'i, LinkedListNodeIdxBased<'a, 'i, I, ARI>, ARI>>,
+    pub(crate) prev: Option<Ref<'a, LinkedListNodeIdxBased<'a, I, ARI>, ARI>>,
+    pub(crate) next: Option<Ref<'a, LinkedListNodeIdxBased<'a, I, ARI>, ARI>>,
 }
