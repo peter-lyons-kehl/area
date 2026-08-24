@@ -38,17 +38,21 @@ impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _A
 // @TODO rename? --> LoadImmediate, LoadParts, LoadWithParts, LoadNear, LoadTangernt, LoadJoined, LoadVerges, LoadTouching, LoadNigh
 //
 // --> Loadable
-pub trait Loadable {
-    type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
+pub trait Loadable<'a, ARI: AddrReprIndicator> {
+    /*type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
     where
         Self: 't,
-        ARI: 'a;
+        ARI: 'a;*/
+    type To;
 
     /// -> *value*/passable object, with referenced based on [RefBin]
-    fn load<'a, 't: 'a, T, ARI: AddrReprIndicator>(
+    /*fn load<'a, 't: 'a, T, ARI: AddrReprIndicator>(
         &self,
         area: <ARI as AddrReprIndicator>::AreaRef<'a>,
     ) -> Self::To<'a, 't, T, ARI>;
+    */
+    fn load(&self, area: <ARI as AddrReprIndicator>::AreaRef<'a>) -> Self::To;
+
     // \---> @TODO Docs:
     //
     // -> LinkedListNodeBinBased, returned as an instance
@@ -59,12 +63,12 @@ pub trait Loadable {
 /// @TODO @TODO USELESS. What can this actually resolve?
 impl<'a, 't: 'a, T, ARI: AddrReprIndicator> RefBin<'a, 't, T, ARI>
 where
-    T: Loadable,
+    T: Loadable<'a, ARI>,
 {
     /// A shorter alternative to [Loadable::load] for [RefBin].
     ///
     /// This is why [AddrReprIndicator::AreaRef] has to be [Copy].
-    pub fn load(&'t self) -> <T as Loadable>::To<'a, 't, T, ARI> {
+    pub fn load(&'t self) -> <T as Loadable<'a, ARI>>::To {
         Loadable::load(/**/ self.ref_t /**/, self.area)
     }
 }
