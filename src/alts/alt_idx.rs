@@ -85,7 +85,7 @@ pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> {
     where
         Self: 't;
 
-    /// Like [super::alt_bin::LoadDirect::from], but when we don't need to resolve other fields of
+    /// Like [super::alt_bin::Loadable::load], but when we don't need to resolve other fields of
     /// the neighbor object, and (with a little inconvenience of passing in a `neighbor`) we resolve
     /// just a specific field (that is present as [RefIdx]).
     fn load_by(&'t self, neighbor: RefBin<'a, 't, T, ARI>) -> Self::To;

@@ -10,7 +10,7 @@ use core::marker::PhantomData;
 #[non_exhaustive]
 pub struct Area<'a, ARI: AddrReprIndicator> {
     _ari: PhantomData<ARI>,
-    _invariant: PhantomData<fn(&'a ())>,
+    _invariant: PhantomData<&'a fn(&'a ())>,
 }
 
 mod _assure_no_clone {

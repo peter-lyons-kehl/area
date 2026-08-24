@@ -38,14 +38,14 @@ impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator> Deref for RefBin<'_a, '_t, T, _A
 // @TODO rename? --> LoadImmediate, LoadParts, LoadWithParts, LoadNear, LoadTangernt, LoadJoined, LoadVerges, LoadTouching, LoadNigh
 //
 // --> Loadable
-pub trait LoadDirect {
+pub trait Loadable {
     type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
     where
         Self: 't,
         ARI: 'a;
 
     /// -> *value*/passable object, with referenced based on [RefBin]
-    fn from<'a, 't: 'a, T, ARI: AddrReprIndicator>(
+    fn load<'a, 't: 'a, T, ARI: AddrReprIndicator>(
         &self,
         area: <ARI as AddrReprIndicator>::AreaRef<'a>,
     ) -> Self::To<'a, 't, T, ARI>;
@@ -59,12 +59,12 @@ pub trait LoadDirect {
 /// @TODO @TODO USELESS. What can this actually resolve?
 impl<'a, 't: 'a, T, ARI: AddrReprIndicator> RefBin<'a, 't, T, ARI>
 where
-    T: LoadDirect,
+    T: Loadable,
 {
-    /// A shorter alternative to [LoadDirect::from] for [RefBin].
+    /// A shorter alternative to [Loadable::load] for [RefBin].
     ///
     /// This is why [AddrReprIndicator::AreaRef] has to be [Copy].
-    pub fn from(&'t self) -> <T as LoadDirect>::To<'a, 't, T, ARI> {
-        LoadDirect::from(/**/ self.ref_t /**/, self.area)
+    pub fn load(&'t self) -> <T as Loadable>::To<'a, 't, T, ARI> {
+        Loadable::load(/**/ self.ref_t /**/, self.area)
     }
 }
