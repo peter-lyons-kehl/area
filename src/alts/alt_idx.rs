@@ -29,7 +29,7 @@ impl<'i, I> AsRef<I> for VoR<'i, I> {
     }
 }
 
-/// Intentionally _not_ [Clone]. @TODO consider [Clone], or even [Copy] - since now it's invariant over 'a.
+/// It's OK to be [Clone], and even [Copy], since [RefIdx] is invariant over 'a.
 ///
 /// This type is invariant over lifetime '_a, so that `'static` couldn't be accidentally or
 /// intentionally used in place of the expected lifetime. Invariant is ensured by [PhantomData] over
@@ -38,11 +38,22 @@ impl<'i, I> AsRef<I> for VoR<'i, I> {
 pub struct RefIdx<'_a, _T, ARI: AddrReprIndicator> {
     /// This "becomes" [crate::alts::alt_bin::RefBin::ref_t] when `ARI` is
     /// [crate::address::AddrPtrWidthS].
-    address: <ARI as AddrReprIndicator>::Addr,
+    pub(crate) address: <ARI as AddrReprIndicator>::Addr,
 
     _a_invariant: PhantomData<&'_a fn(&'_a ())>,
     _t_type: PhantomData<_T>,
 }
+// No derive, since we want [Clone] regardless of whether _T is [Clone].
+impl<'_a, _T, ARI: AddrReprIndicator> Clone for RefIdx<'_a, _T, ARI> {
+    fn clone(&self) -> Self {
+        Self {
+            address: self.address,
+            _a_invariant: PhantomData,
+            _t_type: PhantomData,
+        }
+    }
+}
+impl<'_a, _T, ARI: AddrReprIndicator> Copy for RefIdx<'_a, _T, ARI> {}
 
 // @TODO move out of trait, direct into RefIdx
 /// This trait exists on its own, rather than just implementing [LoadFromArea::load_from] directly
@@ -107,7 +118,7 @@ impl<'a, T, ARI: AddrReprIndicator> RefIdx<'a, 'static, T, ARI> {
 pub trait EnsureInvariant<'a> {
     //fn self_outlives_a<'s: 'a>(&'s self) ->;
 
-    fn a_outlives_self(a: &'a Self) -> &impl EnsureInvariant<'a>;
+    //fn a_outlives_self(a: &'a Self) -> &impl EnsureInvariant<'a>;
 
     //type Selfie: EnsureInvariant<'a>;
 
@@ -121,9 +132,9 @@ Self: 'a,*/
 {
     //fn self_outlives_a<'s: 'a>(&'s self) {}
 
-    fn a_outlives_self(a: &'a Self) -> &Self {
+    /*fn a_outlives_self(a: &'a Self) -> &Self {
         a
-    }
+    }*/
 
     //type Selfie = VoRIdx<'i, I>;
     //

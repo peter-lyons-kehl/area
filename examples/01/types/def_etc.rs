@@ -35,31 +35,28 @@ pub mod bin {
 
 impl<'a, I: 'a, ARI: AddrReprIndicator + 'a> Loadable<'a, ARI>
     for LinkedListNodeIdxBased<'a, I, ARI>
-// @TODO why do we need the following bound?
-//
-//where
-//    Self: 'i,
 {
     type To = LinkedListNodeBinBased<'a, I, ARI>;
 
     // Without the leading lifetime 'a for the receiver (&'a self) we had difficulties to implement it
     //
     // fn load(&self,...
-    fn load(&self, _area: <ARI as area::address::AddrReprIndicator>::AreaRef<'a>) -> Self::To {
+    fn load(&'a self, area: <ARI as area::address::AddrReprIndicator>::AreaRef<'a>) -> Self::To {
         //@TODO
 
         //let _: LinkedListNodeBinBased<'_, _, ARI> = LinkedListNodeBinBased {
         let result = LinkedListNodeBinBased::<'_, _, ARI> {
-            //item_vor: VoRBin::new(self.vor.as_ref()),
-            item_vor: VoRBin::<'a, I>::new({
+            item_vor: VoRBin::new(self.item_vor.as_ref()),
+            /*item_vor: VoRBin::<'a, I>::new({
                 let rf = self.item_vor.as_ref();
                 unsafe { core::mem::transmute(rf) }
-            }),
+            }),*/
             //
             //item_vor: loop {},
             //
-            prev: None, //@TODO
-            next: None, //@TODO
+            prev: self.prev.as_ref().map(|ref_idx| (*ref_idx, area).into()),
+
+            next: self.next.as_ref().map(|ref_idx| (*ref_idx, area).into()),
         };
         if false {
             take_outlives::<'a, _>(result);

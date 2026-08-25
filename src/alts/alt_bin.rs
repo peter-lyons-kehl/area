@@ -1,5 +1,6 @@
 use crate::Area;
-use crate::address::AddrReprIndicator;
+use crate::address::{AddrReprIndicator, IntoUsize};
+use crate::alts::alt_idx::RefIdx;
 use core::marker::PhantomData;
 use core::ops::Deref;
 
@@ -34,6 +35,21 @@ pub struct RefBin<'a, T, ARI: AddrReprIndicator> {
     pub(crate) area: <ARI as AddrReprIndicator>::AreaRef<'a>,
     _a_invariant: PhantomData<&'a fn(&'a ())>,
 }
+impl<'a, T, ARI: AddrReprIndicator>
+    From<(RefIdx<'a, T, ARI>, <ARI as AddrReprIndicator>::AreaRef<'a>)> for RefBin<'a, T, ARI>
+{
+    fn from(
+        (ref_idx, area_ref): (RefIdx<'a, T, ARI>, <ARI as AddrReprIndicator>::AreaRef<'a>),
+    ) -> Self {
+        Self {
+            ref_t: unsafe {
+                core::mem::transmute(&area_ref.into().data[ref_idx.address.into_usize()])
+            },
+            area: area_ref,
+            _a_invariant: PhantomData,
+        }
+    }
+}
 
 impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator> Deref for RefBin<'_a, T, _ARI> {
     type Target = T;
@@ -65,7 +81,7 @@ pub trait Loadable<'a, ARI: AddrReprIndicator> {
     // it - see examples/01/types/def_etc.rs
     //
     // fn load(&'a self,...
-    fn load(&self, area: <ARI as AddrReprIndicator>::AreaRef<'a>) -> Self::To;
+    fn load(&'a self, area: <ARI as AddrReprIndicator>::AreaRef<'a>) -> Self::To;
 
     // \---> @TODO Docs:
     //

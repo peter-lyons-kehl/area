@@ -1,10 +1,40 @@
+use crate::Area;
+
 /// For sealing [AddrReprIndicator] only. Intentionally _not_ public.
 trait AddrReprIndicatorSealBase {}
 
+pub(crate) trait IntoUsize {
+    fn into_usize(self) -> usize;
+}
+impl IntoUsize for u16 {
+    fn into_usize(self) -> usize {
+        self as usize
+    }
+}
+impl IntoUsize for u32 {
+    fn into_usize(self) -> usize {
+        self as usize
+    }
+}
+impl IntoUsize for u64 {
+    fn into_usize(self) -> usize {
+        self as usize
+    }
+}
+impl IntoUsize for usize {
+    fn into_usize(self) -> usize {
+        self
+    }
+}
+
+/// Indicate address representation.
+///
+/// 'static isa not strictly necessary, but then we'd need to restrict [AddrReprIndicator::AreaRef]
+/// with an extra bound....
 #[allow(private_bounds)]
-pub trait AddrReprIndicator: AddrReprIndicatorSealBase {
+pub trait AddrReprIndicator: AddrReprIndicatorSealBase + Sized + 'static {
     // @TODO add any traits, like From<...>, or make new traits, if needed
-    type Addr;
+    type Addr: IntoUsize + Copy;
 
     // @TODO
     /// - This is a reference to [crate::Area], that is, `&'a Area<'a, _ARI>`, for most `Addr*Repr*`
@@ -17,7 +47,7 @@ pub trait AddrReprIndicator: AddrReprIndicatorSealBase {
     //
     // OR:
     //
-    type AreaRef<'a>: Copy;
+    type AreaRef<'a>: Into<&'a Area<'a, Self>> + Copy;
     //const AREA_ARR_SIZE: usize = 1;
 }
 
@@ -26,9 +56,9 @@ type AddrWidthLabel = char;
 
 /// Indicate address representation: width, and whether it's an index (rather than a
 /// pointer/reference). This is _not_ going to be an alias to `[u8; N]` (nor to area's internal
-/// `Bytes<N>`, nor to anything similar), because by having a dedicated type we prevent accidental
-/// mistakes (and we make it more a little more forward compatible once relevant Rust const
-/// generic-related features get stabilized @TODO).
+/// representation, nor to anything similar), because by having a dedicated type we prevent
+/// accidental mistakes (and we make it more a little more forward compatible once relevant Rust
+/// const generic-related features get stabilized @TODO).
 ///
 /// However, it *will* be (hopefully) replaced with a `const` generic, once @TODO is stabilized.
 ///
@@ -90,44 +120,58 @@ mod addr_repr_indicator_impls {
         AddrIdx16, AddrIdx32, AddrIdx64, AddrIdxS, AddrPtr, AddrRepr, AddrReprIndicator,
         AddrReprIndicatorSealBase, AddrWidthLabel,
     };
+    use crate::Area;
 
     // @TODO if we change this, it gets *aligned*
-    type Bytes<const N: usize> = [u8; N];
+    //type Bytes<const N: usize> = [u8; N];
 
     impl AddrReprIndicator for AddrIdx16 {
-        type Addr = Bytes<2>;
+        type Addr = u16; //Bytes<2>;
         type AreaRef<'a> = &'a crate::Area<'a, AddrIdx16>;
     }
     impl AddrReprIndicator for AddrIdx32 {
-        type Addr = Bytes<4>;
+        type Addr = u32; //Bytes<4>;
         type AreaRef<'a> = &'a crate::Area<'a, AddrIdx32>;
     }
     impl AddrReprIndicator for AddrIdx64 {
-        type Addr = Bytes<8>;
+        type Addr = u64; //Bytes<8>;
         type AreaRef<'a> = &'a crate::Area<'a, AddrIdx64>;
     }
     impl AddrReprIndicator for AddrIdxS {
-        #[cfg(target_pointer_width = "16")]
-        type Addr = Bytes<2>;
+        /*#[cfg(target_pointer_width = "16")]
+        type Addr = u16; //Bytes<2>;
         #[cfg(target_pointer_width = "32")]
-        type Addr = Bytes<4>;
+        type Addr = u32; //Bytes<4>;
         #[cfg(target_pointer_width = "64")]
-        type Addr = Bytes<8>;
+        type Addr = u64; //Bytes<8>;*/
+        type Addr = usize;
 
         type AreaRef<'a> = &'a crate::Area<'a, AddrIdxS>;
     }
 
+    #[derive(Clone, Copy)]
+    #[non_exhaustive]
+    pub struct AreaRefEmpty;
+    impl<'a, ARI: AddrReprIndicator> Into<&'a Area<'a, ARI>> for AreaRefEmpty {
+        fn into(self) -> &'a Area<'a, ARI> {
+            unreachable!("NOT to be used")
+        }
+    }
+
     impl AddrReprIndicator for AddrPtr {
-        #[cfg(target_pointer_width = "16")]
-        type Addr = Bytes<2>;
+        /*#[cfg(target_pointer_width = "16")]
+        type Addr = u16;//Bytes<2>;
         #[cfg(target_pointer_width = "32")]
-        type Addr = Bytes<4>;
+        type Addr = u32;//Bytes<4>;
         #[cfg(target_pointer_width = "64")]
-        type Addr = Bytes<8>;
+        type Addr = u64;//Bytes<8>;*/
+        type Addr = usize;
 
         /// The stored address is already a pointer/reference. It doesn't need to be resolved, so it
         /// doesn't need [crate::Area].
-        type AreaRef<'a> = ();
+        //
+        //type AreaRef<'a> = ();
+        type AreaRef<'a> = AreaRefEmpty;
     }
 
     /// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement
