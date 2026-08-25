@@ -165,7 +165,11 @@ mod addr_repr_indicator_impls {
         type Addr = u32;//Bytes<4>;
         #[cfg(target_pointer_width = "64")]
         type Addr = u64;//Bytes<8>;*/
+
+        //@TODO not usize, but: raw ptr
         type Addr = usize;
+
+        // @TODO const CAN_VALIDATE: bool
 
         /// The stored address is already a pointer/reference. It doesn't need to be resolved, so it
         /// doesn't need [crate::Area].

@@ -32,7 +32,8 @@ impl<'i, I> Deref for VoR<'i, I> {
 pub struct RefBin<'a, T, ARI: AddrReprIndicator> {
     ref_t: &'a T,
 
-    pub(crate) area: <ARI as AddrReprIndicator>::AreaRef<'a>,
+    //@TODO: pub(crate) + make a shortcut fn for what gets affected
+    pub area: <ARI as AddrReprIndicator>::AreaRef<'a>,
     _a_invariant: PhantomData<&'a fn(&'a ())>,
 }
 impl<'a, T, ARI: AddrReprIndicator>
@@ -81,7 +82,7 @@ pub trait Loadable<'a, ARI: AddrReprIndicator> {
     // it - see examples/01/types/def_etc.rs
     //
     // fn load(&'a self,...
-    fn load(&'a self, area: <ARI as AddrReprIndicator>::AreaRef<'a>) -> Self::To;
+    fn load_from(&'a self, area: <ARI as AddrReprIndicator>::AreaRef<'a>) -> Self::To;
 
     // \---> @TODO Docs:
     //
@@ -90,7 +91,6 @@ pub trait Loadable<'a, ARI: AddrReprIndicator> {
     // @TODO should it have receiver with a lifetime?: &'t self
 }
 
-/// @TODO @TODO USELESS. What can this actually resolve?
 impl<'a, T, ARI: AddrReprIndicator> RefBin<'a, T, ARI>
 where
     T: Loadable<'a, ARI>,
@@ -99,6 +99,6 @@ where
     ///
     /// This is why [AddrReprIndicator::AreaRef] has to be [Copy].
     pub fn load(&'a self) -> <T as Loadable<'a, ARI>>::To {
-        Loadable::load(/**/ self.ref_t /**/, self.area)
+        Loadable::load_from(/**/ self.ref_t /**/, self.area)
     }
 }

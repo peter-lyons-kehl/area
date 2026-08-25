@@ -46,13 +46,15 @@ pub struct RefIdx<'_a, _T, ARI: AddrReprIndicator> {
 // No derive, since we want [Clone] regardless of whether _T is [Clone].
 impl<'_a, _T, ARI: AddrReprIndicator> Clone for RefIdx<'_a, _T, ARI> {
     fn clone(&self) -> Self {
-        Self {
+        *self
+        /*Self {
             address: self.address,
             _a_invariant: PhantomData,
             _t_type: PhantomData,
-        }
+        }*/
     }
 }
+// No derive, since we want [Copy] regardless of whether _T is [Copy].
 impl<'_a, _T, ARI: AddrReprIndicator> Copy for RefIdx<'_a, _T, ARI> {}
 
 // @TODO move out of trait, direct into RefIdx
