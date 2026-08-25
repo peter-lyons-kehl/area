@@ -1,6 +1,7 @@
 use crate::Area;
 use crate::address::AddrReprIndicator;
 use crate::alts::alt_bin::RefBin;
+use core::convert::AsRef;
 use core::marker::PhantomData;
 use core::ops::Deref;
 
@@ -19,6 +20,11 @@ impl<'i, I> Deref for VoR<'i, I> {
     type Target = I;
 
     fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl<'i, I> AsRef<I> for VoR<'i, I> {
+    fn as_ref(&self) -> &I {
         &self.0
     }
 }
@@ -127,3 +133,9 @@ Self: 'a,*/
 }
 
 pub trait ExtendLifetime {}
+
+/// 1. Make sealed
+/// 2. blanket impl only for fn(...)
+pub trait ExtendFn<'a>: Fn(&'a ()) {
+    type S: ExtendFn<'a>;
+}

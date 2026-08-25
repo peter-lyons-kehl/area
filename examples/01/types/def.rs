@@ -22,7 +22,7 @@ pub struct LinkedListNode<'a, I, ARI: AddrReprIndicator = AddrIdxS> {
     //
     //    \- --> then this wrapper type doesn't need to be a GAT in ARI. Instead, it can be a proper
     //    type in alts::*, for example alts::*::Value.
-    pub(crate) item: VoR<'a, I>,
+    pub(crate) item_vor: VoR<'a, I>,
 
     //prev: Option<Ref<'ia, LinkedListNode<'ia, I, ARI>, ARI>>,
     //

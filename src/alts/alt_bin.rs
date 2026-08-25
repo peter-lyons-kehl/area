@@ -58,6 +58,13 @@ pub trait Loadable<'a, ARI: AddrReprIndicator> {
         area: <ARI as AddrReprIndicator>::AreaRef<'a>,
     ) -> Self::To<'a, 't, T, ARI>;
     */
+
+    // @TODO --\\\
+    //
+    // Without the leading lifetime 'a for the receiver (&'a self) we had difficulties to implement
+    // it - see examples/01/types/def_etc.rs
+    //
+    // fn load(&'a self,...
     fn load(&self, area: <ARI as AddrReprIndicator>::AreaRef<'a>) -> Self::To;
 
     // \---> @TODO Docs:

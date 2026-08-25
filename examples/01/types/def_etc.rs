@@ -42,16 +42,35 @@ impl<'a, I: 'a, ARI: AddrReprIndicator + 'a> Loadable<'a, ARI>
 {
     type To = LinkedListNodeBinBased<'a, I, ARI>;
 
+    // Without the leading lifetime 'a for the receiver (&'a self) we had difficulties to implement it
+    //
+    // fn load(&self,...
     fn load(&self, _area: <ARI as area::address::AddrReprIndicator>::AreaRef<'a>) -> Self::To {
         //@TODO
 
         //let _: LinkedListNodeBinBased<'_, _, ARI> = LinkedListNodeBinBased {
         let result = LinkedListNodeBinBased::<'_, _, ARI> {
-            item: VoRBin::new(&*self.item),
-            prev: None,
-            next: None,
+            //item_vor: VoRBin::new(self.vor.as_ref()),
+            item_vor: VoRBin::<'a, I>::new({
+                let rf = self.item_vor.as_ref();
+                unsafe { core::mem::transmute(rf) }
+            }),
+            //
+            //item_vor: loop {},
+            //
+            prev: None, //@TODO
+            next: None, //@TODO
         };
-        unsafe { core::mem::transmute(result) }
-        //todo!()
+        if false {
+            take_outlives::<'a, _>(result);
+            todo!()
+        } else {
+            result
+        }
+        //unsafe { core::mem::transmute(result) }
     }
 }
+
+trait Outlives<'a>: 'a {}
+impl<'a, T: 'a> Outlives<'a> for T {}
+fn take_outlives<'a, T: 'a>(_: T) {}
