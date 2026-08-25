@@ -41,12 +41,13 @@ impl<'a, I: 'a, ARI: AddrReprIndicator + 'a> Loadable<'a, ARI>
 
     // Without the leading lifetime 'a for the receiver (&'a self) we had difficulties to implement
     // it (and there would be a lot of `unsafe`).
-    fn load_from(
-        &'a self,
-        area: <ARI as area::address::AddrReprIndicator>::AreaRef<'a>,
-    ) -> Self::To {
+    //
+    // &'a self,
+    fn load_from(&self, area: <ARI as AddrReprIndicator>::AreaRef<'a>) -> Self::To {
         let result = LinkedListNodeBinBased::<'_, _, ARI> {
-            item_vor: VoRBin::new(self.item_vor.as_ref()),
+            // Passing in ARI and area to the following allows us to factor transmute out of here =
+            // out of the userspace.
+            item_vor: VoRBin::from_vor_idx::<ARI>(&self.item_vor, area),
 
             prev: self.prev.as_ref().map(|ref_idx| (*ref_idx, area).into()),
             next: self.next.as_ref().map(|ref_idx| (*ref_idx, area).into()),
@@ -64,7 +65,11 @@ impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> LinkedListNodeBinBased<
         self.item_vor.eq(searched)
     }
 
-    fn ref_bin_to_next_own_bin(&'a self) -> Option<Self> {
+    /// I _only_ _thought_ that this used to need the receiver to be of lifetime 'a - but it
+    /// probably didn't need it:
+    ///
+    /// &'a self
+    fn ref_bin_to_next_own_bin(&self) -> Option<Self> {
         //@TODO? .map(...) <-- Option::map(...)
         if let Some(next_ref_bin) = self.next.as_ref() {
             if false {
@@ -97,8 +102,10 @@ impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> LinkedListNodeBinBased<
                     return true;
                 }
 
-                //let _next_node_own_bin_based_not_extended = node_own_bin_based.ref_bin_to_next_own_bin();
+                let next_node_own_bin_based_not_extended =
+                    node_own_bin_based.ref_bin_to_next_own_bin();
 
+                /*
                 // @TODO create and use a shortcut fn for this unsafe.
                 let node_own_bin_based_extended: &'a Self =
                     unsafe { core::mem::transmute(node_own_bin_based) };
@@ -107,7 +114,9 @@ impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> LinkedListNodeBinBased<
                     node_own_bin_based_extended.ref_bin_to_next_own_bin();
 
                 node_own_bin_based_opt = next_node_own_bin_based_opt;
-                //let next_node_own_bin_based_opt = loop {};
+                */
+
+                let next_node_own_bin_based_opt = next_node_own_bin_based_not_extended;
             } else {
                 return false;
             };

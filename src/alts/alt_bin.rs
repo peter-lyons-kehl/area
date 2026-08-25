@@ -1,6 +1,6 @@
 use crate::Area;
 use crate::address::{AddrReprIndicator, IntoUsize};
-use crate::alts::alt_idx::RefIdx;
+use crate::alts::alt_idx::{RefIdx, VoRIdx};
 use core::marker::PhantomData;
 use core::ops::Deref;
 
@@ -24,6 +24,18 @@ impl<'i, I> Deref for VoR<'i, I> {
 
     fn deref(&self) -> &Self::Target {
         self.0
+    }
+}
+
+impl<'i, I> VoRBin<'i, I> {
+    pub fn from_vor_idx<'a: 'i, ARI: AddrReprIndicator + 'a>(
+        vor_idx: &'i VoRIdx<'i, I>,
+        _area: <ARI as crate::address::AddrReprIndicator>::AreaRef<'a>,
+    ) -> VoRBin<'a, I> {
+        // let result: : VoRBin<'i, I> = ...
+        let result = VoRBin::new(vor_idx.as_ref());
+
+        unsafe { core::mem::transmute(result) }
     }
 }
 
@@ -82,7 +94,7 @@ pub trait Loadable<'a, ARI: AddrReprIndicator> {
     // it - see examples/01/types/def_etc.rs
     //
     // fn load(&'a self,...
-    fn load_from(&'a self, area: <ARI as AddrReprIndicator>::AreaRef<'a>) -> Self::To;
+    fn load_from(&self, area: <ARI as AddrReprIndicator>::AreaRef<'a>) -> Self::To;
 
     // \---> @TODO Docs:
     //
@@ -98,7 +110,9 @@ where
     /// A shorter alternative to [Loadable::load] for [RefBin].
     ///
     /// This is why [AddrReprIndicator::AreaRef] has to be [Copy].
-    pub fn load(&'a self) -> <T as Loadable<'a, ARI>>::To {
+    ///
+    /// pub fn load(&'a self) -> ...
+    pub fn load(&self) -> <T as Loadable<'a, ARI>>::To {
         Loadable::load_from(/**/ self.ref_t /**/, self.area)
     }
 }
