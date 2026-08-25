@@ -45,9 +45,6 @@ impl<'a, I: 'a, ARI: AddrReprIndicator + 'a> Loadable<'a, ARI>
         &'a self,
         area: <ARI as area::address::AddrReprIndicator>::AreaRef<'a>,
     ) -> Self::To {
-        //@TODO
-
-        //let _: LinkedListNodeBinBased<'_, _, ARI> = LinkedListNodeBinBased {
         let result = LinkedListNodeBinBased::<'_, _, ARI> {
             item_vor: VoRBin::new(self.item_vor.as_ref()),
 
@@ -70,11 +67,14 @@ impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> LinkedListNodeBinBased<
     fn ref_bin_to_next_own_bin(&'a self) -> Option<Self> {
         //@TODO? .map(...) <-- Option::map(...)
         if let Some(next_ref_bin) = self.next.as_ref() {
-            /*let ref_node_idx_based = next_ref_bin.deref();
+            if false {
+                let ref_node_idx_based = next_ref_bin.deref();
 
-            // @TODO create and use a shortcut fn. Then make .area pub(crate) again. Se @TODO in alt_bin.rs
-            let node_own_bin_based = ref_node_idx_based.load_from(next_ref_bin.area);
-            */
+                // @TODO create and use a shortcut fn. Then make .area pub(crate) again. Se @TODO in alt_bin.rs
+                let node_own_bin_based = ref_node_idx_based.load_from(next_ref_bin.area);
+
+                return Some(node_own_bin_based);
+            }
 
             let node_own_bin_based = next_ref_bin.load();
 

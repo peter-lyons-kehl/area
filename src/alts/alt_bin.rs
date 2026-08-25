@@ -76,7 +76,7 @@ pub trait Loadable<'a, ARI: AddrReprIndicator> {
     ) -> Self::To<'a, 't, T, ARI>;
     */
 
-    // @TODO --\\\
+    // @TODO:
     //
     // Without the leading lifetime 'a for the receiver (&'a self) we had difficulties to implement
     // it - see examples/01/types/def_etc.rs
