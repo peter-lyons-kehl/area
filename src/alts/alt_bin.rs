@@ -30,9 +30,14 @@ impl<'i, I> Deref for VorBin<'i, I> {
 }
 
 impl<'i, I> VorBin<'i, I> {
-    pub fn from_vor_idx<'a: 'i, ARI: AddrReprIndicator + 'a>(
-        vor_idx: &'i VorIdx<'i, I>,
-        _area: <ARI as crate::address::AddrReprIndicator>::AreaRef<'a>,
+    // Previous, but unnecessary:
+    //
+    //, ARI: AddrReprIndicator + 'a>(
+    //
+    // vor_idx: &'i VorIdx<'a, I>,
+    pub fn from_vor_idx<'a: 'i>(
+        vor_idx: &VorIdx<'a, I>,
+        //_area: <ARI as crate::address::AddrReprIndicator>::AreaRef<'a>,
     ) -> VorBin<'a, I> {
         // let result: : VoRBin<'i, I> = ...
         let result = VorBin::new(vor_idx.as_ref());

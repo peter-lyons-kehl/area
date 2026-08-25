@@ -47,7 +47,9 @@ impl<'a, I: 'a, ARI: AddrReprIndicator + 'a> Loadable<'a, ARI>
         let result = LinkedListNodeBinBased::<'_, _, ARI> {
             // Passing in ARI and area to the following allows us to factor transmute out of here =
             // out of the userspace.
-            item_vor: VorBin::from_vor_idx::<ARI>(&self.item_vor, area),
+            //
+            //item_vor: VorBin::from_vor_idx::<ARI>(&self.item_vor, area),
+            item_vor: VorBin::from_vor_idx(&self.item_vor),
 
             prev: self.prev.as_ref().map(|ref_idx| (*ref_idx, area).into()),
             next: self.next.as_ref().map(|ref_idx| (*ref_idx, area).into()),
