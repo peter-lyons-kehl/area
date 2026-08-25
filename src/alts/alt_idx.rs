@@ -11,12 +11,14 @@ pub use self::{RefIdx as Ref, VoRIdx as VoR};
 
 // @TODO Once https://github.com/rust-lang/rust/issues/135806 is stabilized, use
 // core::marker::PhantomCovariantLifetime and friends.
+//
+// @TODO #[repr(packed)] ??
 /// VoR = ValueOrRef
 #[repr(transparent)]
 #[non_exhaustive]
 pub struct VoRIdx<'i, I>(I, PhantomData<&'i ()>);
 
-impl<'i, I> Deref for VoR<'i, I> {
+impl<'i, I> Deref for VoRIdx<'i, I> {
     type Target = I;
 
     fn deref(&self) -> &Self::Target {

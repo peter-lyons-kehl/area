@@ -9,6 +9,8 @@ use core::ops::Deref;
 pub use self::{RefBin as Ref, VoRBin as VoR};
 
 // @TODO Clone, or even Copy?
+//
+// @TODO #[repr(packed)] ??
 /// VoR = ValueOrRef
 #[repr(transparent)]
 #[non_exhaustive]
@@ -19,7 +21,7 @@ impl<'i, I> VoRBin<'i, I> {
     }
 }
 
-impl<'i, I> Deref for VoR<'i, I> {
+impl<'i, I> Deref for VoRBin<'i, I> {
     type Target = I;
 
     fn deref(&self) -> &Self::Target {
