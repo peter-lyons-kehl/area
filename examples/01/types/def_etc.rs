@@ -1,6 +1,6 @@
 //use area::alts::alt_bin::RefBin;
 use area::address::AddrReprIndicator;
-use area::alts::VoRBin;
+use area::alts::VorBin;
 use area::alts::alt_bin::Loadable;
 //use area::alts::alt_idx::
 use super::{LinkedListNodeBinBased, LinkedListNodeIdxBased};
@@ -47,7 +47,7 @@ impl<'a, I: 'a, ARI: AddrReprIndicator + 'a> Loadable<'a, ARI>
         let result = LinkedListNodeBinBased::<'_, _, ARI> {
             // Passing in ARI and area to the following allows us to factor transmute out of here =
             // out of the userspace.
-            item_vor: VoRBin::from_vor_idx::<ARI>(&self.item_vor, area),
+            item_vor: VorBin::from_vor_idx::<ARI>(&self.item_vor, area),
 
             prev: self.prev.as_ref().map(|ref_idx| (*ref_idx, area).into()),
             next: self.next.as_ref().map(|ref_idx| (*ref_idx, area).into()),

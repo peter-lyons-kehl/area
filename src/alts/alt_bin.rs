@@ -1,12 +1,12 @@
 use crate::Area;
 use crate::address::{AddrReprIndicator, IntoUsize};
-use crate::alts::alt_idx::{RefIdx, VoRIdx};
+use crate::alts::alt_idx::{RefIdx, VorIdx};
 use core::marker::PhantomData;
 use core::ops::Deref;
 
 // Re-export, primarily for alternatives by switching between [RefBin] and
 // [crate::refs_alternatives::refs_idx::RefIdx] in client's code
-pub use self::{RefBin as Ref, VoRBin as VoR};
+pub use self::{RefBin as Ref, VorBin as Vor};
 
 // @TODO Clone, or even Copy?
 //
@@ -14,14 +14,14 @@ pub use self::{RefBin as Ref, VoRBin as VoR};
 /// VoR = ValueOrRef
 #[repr(transparent)]
 #[non_exhaustive]
-pub struct VoRBin<'i, I>(&'i I);
-impl<'i, I> VoRBin<'i, I> {
+pub struct VorBin<'i, I>(&'i I);
+impl<'i, I> VorBin<'i, I> {
     pub fn new(ri: &'i I) -> Self {
         Self(ri)
     }
 }
 
-impl<'i, I> Deref for VoRBin<'i, I> {
+impl<'i, I> Deref for VorBin<'i, I> {
     type Target = I;
 
     fn deref(&self) -> &Self::Target {
@@ -29,13 +29,13 @@ impl<'i, I> Deref for VoRBin<'i, I> {
     }
 }
 
-impl<'i, I> VoRBin<'i, I> {
+impl<'i, I> VorBin<'i, I> {
     pub fn from_vor_idx<'a: 'i, ARI: AddrReprIndicator + 'a>(
-        vor_idx: &'i VoRIdx<'i, I>,
+        vor_idx: &'i VorIdx<'i, I>,
         _area: <ARI as crate::address::AddrReprIndicator>::AreaRef<'a>,
-    ) -> VoRBin<'a, I> {
+    ) -> VorBin<'a, I> {
         // let result: : VoRBin<'i, I> = ...
-        let result = VoRBin::new(vor_idx.as_ref());
+        let result = VorBin::new(vor_idx.as_ref());
 
         unsafe { core::mem::transmute(result) }
     }

@@ -7,7 +7,7 @@ use core::ops::Deref;
 
 // Re-export, primarily for alternative use switching between [RefIdx] and [refs_bin::RefBin] in
 // client's code
-pub use self::{RefIdx as Ref, VoRIdx as VoR};
+pub use self::{RefIdx as Ref, VorIdx as Vor};
 
 // @TODO Once https://github.com/rust-lang/rust/issues/135806 is stabilized, use
 // core::marker::PhantomCovariantLifetime and friends.
@@ -16,16 +16,16 @@ pub use self::{RefIdx as Ref, VoRIdx as VoR};
 /// VoR = ValueOrRef
 #[repr(transparent)]
 #[non_exhaustive]
-pub struct VoRIdx<'i, I>(I, PhantomData<&'i ()>);
+pub struct VorIdx<'i, I>(I, PhantomData<&'i ()>);
 
-impl<'i, I> Deref for VoRIdx<'i, I> {
+impl<'i, I> Deref for VorIdx<'i, I> {
     type Target = I;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl<'i, I> AsRef<I> for VoR<'i, I> {
+impl<'i, I> AsRef<I> for VorIdx<'i, I> {
     fn as_ref(&self) -> &I {
         &self.0
     }
@@ -130,7 +130,7 @@ pub trait EnsureInvariant<'a> {
 
     //type Fm: FnMut()
 }
-impl<'a, 'i, I> EnsureInvariant<'a> for VoRIdx<'i, I>
+impl<'a, 'i, I> EnsureInvariant<'a> for VorIdx<'i, I>
 /*where
 Self: 'a,*/
 {
