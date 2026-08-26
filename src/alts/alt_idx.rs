@@ -16,16 +16,16 @@ pub use self::{RefIdx as Ref, VorIdx as Vor};
 /// VoR = ValueOrRef
 #[repr(transparent)]
 #[non_exhaustive]
-pub struct VorIdx<'i, I>(I, PhantomData<&'i ()>);
+pub struct VorIdx<'a: 'i, 'i, I>(I, PhantomData<&'a ()>, PhantomData<&'i ()>);
 
-impl<'i, I> Deref for VorIdx<'i, I> {
+impl<'a: 'i, 'i, I> Deref for VorIdx<'a, 'i, I> {
     type Target = I;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl<'i, I> AsRef<I> for VorIdx<'i, I> {
+impl<'a: 'i, 'i, I> AsRef<I> for VorIdx<'a, 'i, I> {
     fn as_ref(&self) -> &I {
         &self.0
     }
@@ -130,7 +130,7 @@ pub trait EnsureInvariant<'a> {
 
     //type Fm: FnMut()
 }
-impl<'a, 'i, I> EnsureInvariant<'a> for VorIdx<'i, I>
+impl<'a: 'i, 'i, I> EnsureInvariant<'a> for VorIdx<'a, 'i, I>
 /*where
 Self: 'a,*/
 {

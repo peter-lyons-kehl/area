@@ -5,17 +5,17 @@ use area::alts::alt_bin::Loadable;
 use super::{LinkedListNodeBinBased, LinkedListNodeIdxBased};
 use core::ops::Deref;
 
-impl<'a, I: 'a, ARI: AddrReprIndicator<'a>> Loadable<'a, ARI>
-    for LinkedListNodeIdxBased<'a, I, ARI>
+impl<'i: 'a, 'a, I: 'a /* <-- @TODO? --> 'i */, ARI: AddrReprIndicator<'a>> Loadable<'a, 'i, ARI>
+    for LinkedListNodeIdxBased<'a, 'i, I, ARI>
 {
-    type To = LinkedListNodeBinBased<'a, I, ARI>;
+    type To = LinkedListNodeBinBased<'a, 'i, I, ARI>;
 
     // Without the leading lifetime 'a for the receiver (&'a self) we had difficulties to implement
     // it (and there would be a lot of `unsafe`).
     //
     // &'a self,
     fn load_from(&self, area: <ARI as AddrReprIndicator<'a>>::AreaRef) -> Self::To {
-        let result = LinkedListNodeBinBased::<'_, _, ARI> {
+        let result = LinkedListNodeBinBased::<'_, '_, _, ARI> {
             // Passing in ARI and area to the following allows us to factor transmute out of here =
             // out of the userspace.
             //
@@ -30,7 +30,9 @@ impl<'a, I: 'a, ARI: AddrReprIndicator<'a>> Loadable<'a, ARI>
 }
 
 // The primary representation for APIs is Bin-based.
-impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>> LinkedListNodeBinBased<'a, I, ARI> {
+impl<'a: 'i, 'i, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>>
+    LinkedListNodeBinBased<'a, 'i, I, ARI>
+{
     /// @TODO if the following has receiver with lifetime 'a, that is: &'a self
     ///
     /// then we have lifetime problem/unsafe in a loop in has_item(...)
@@ -110,12 +112,12 @@ impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>> LinkedListNodeBinBased<'
 }
 
 #[non_exhaustive]
-pub struct Iter<'a, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>> {
-    initial_ref: Option<&'a LinkedListNodeBinBased<'a, I, ARI>>,
-    subsequent_own: Option<LinkedListNodeBinBased<'a, I, ARI>>,
+pub struct Iter<'a: 'i, 'i, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>> {
+    initial_ref: Option<&'a LinkedListNodeBinBased<'a, 'i, I, ARI>>,
+    subsequent_own: Option<LinkedListNodeBinBased<'a, 'i, I, ARI>>,
 }
 
-impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>> Iterator for Iter<'a, I, ARI> {
+impl<'a: 'i, 'i, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>> Iterator for Iter<'a, 'i, I, ARI> {
     type Item = &'a I;
 
     fn next(&mut self) -> Option<&'a I> {
@@ -139,8 +141,10 @@ impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>> Iterator for Iter<'a, I,
         }
     }
 }
-impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>> LinkedListNodeBinBased<'a, I, ARI> {
-    pub fn iter(&'a self) -> Iter<'a, I, ARI> {
+impl<'a: 'i, 'i, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>>
+    LinkedListNodeBinBased<'a, 'i, I, ARI>
+{
+    pub fn iter(&'a self) -> Iter<'a, 'i, I, ARI> {
         Iter {
             initial_ref: Some(self),
             subsequent_own: None,

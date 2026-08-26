@@ -14,14 +14,15 @@ pub use self::{RefBin as Ref, VorBin as Vor};
 /// VoR = ValueOrRef
 #[repr(transparent)]
 #[non_exhaustive]
-pub struct VorBin<'i, I>(&'i I);
-impl<'i, I> VorBin<'i, I> {
+pub struct VorBin<'a: 'i, 'i, I>(&'i I, PhantomData<&'a fn(&'a ()) /* invariant over 'a */>);
+
+impl<'a: 'i, 'i, I> VorBin<'a, 'i, I> {
     pub fn new(ri: &'i I) -> Self {
-        Self(ri)
+        Self(ri, PhantomData)
     }
 }
 
-impl<'i, I> Deref for VorBin<'i, I> {
+impl<'a: 'i, 'i, I> Deref for VorBin<'a, 'i, I> {
     type Target = I;
 
     fn deref(&self) -> &Self::Target {
@@ -30,26 +31,23 @@ impl<'i, I> Deref for VorBin<'i, I> {
 }
 // @TODO \\--> AsRef, too? Like it is already so for VorIdx.
 
-impl<'i, I> VorBin<'i, I> {
+impl<'a: 'i, 'i, I> VorBin<'a, 'i, I> {
     // Previous, but unnecessary:
     //
     //, ARI: AddrReprIndicator + 'a>(
     //
     // vor_idx: &'i VorIdx<'a, I>,
-    pub fn from_vor_idx<'a: 'i>(
-        vor_idx: &VorIdx<'a, I>,
+    pub fn from_vor_idx(
+        vor_idx: &VorIdx<'a, 'i, I>,
         //_area: <ARI as crate::address::AddrReprIndicator>::AreaRef<'a>,
-    ) -> VorBin<'a, I> {
+    ) -> VorBin<'a, 'i, I> {
         // let result: : VoRBin<'i, I> = ...
         let result = VorBin::new(vor_idx.as_ref());
 
         unsafe { core::mem::transmute(result) }
     }
 
-    pub fn extend_lifetime<'a, ARI: AddrReprIndicator<'a>>(&'i self)
-    where
-        'a: 'i,
-    { //@TODO
+    pub fn extend_lifetime<ARI: AddrReprIndicator<'a>>(&'i self) { //@TODO
     }
 }
 
@@ -88,12 +86,12 @@ impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator<'_a>> Deref for RefBin<'_a, T, _A
 // @TODO rename? --> LoadImmediate, LoadParts, LoadWithParts, LoadNear, LoadTangernt, LoadJoined, LoadVerges, LoadTouching, LoadNigh
 //
 // --> Loadable
-pub trait Loadable<'a, ARI: AddrReprIndicator<'a>> {
+pub trait Loadable<'a: 'i, 'i, ARI: AddrReprIndicator<'a>> {
     /*type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
     where
         Self: 't,
         ARI: 'a;*/
-    type To;
+    type To: 'a + 'i;
 
     /// -> *value*/passable object, with referenced based on [RefBin]
     /*fn load<'a, 't: 'a, T, ARI: AddrReprIndicator>(
@@ -117,16 +115,16 @@ pub trait Loadable<'a, ARI: AddrReprIndicator<'a>> {
     // @TODO should it have receiver with a lifetime?: &'t self
 }
 
-impl<'a, T, ARI: AddrReprIndicator<'a>> RefBin<'a, T, ARI>
+impl<'a: 'i, 'i, T, ARI: AddrReprIndicator<'a>> RefBin<'a, T, ARI>
 where
-    T: Loadable<'a, ARI>,
+    T: Loadable<'a, 'i, ARI>,
 {
     /// A shorter alternative to [Loadable::load] for [RefBin].
     ///
     /// This is why [AddrReprIndicator::AreaRef] has to be [Copy].
     ///
     /// pub fn load(&'a self) -> ...
-    pub fn load(&self) -> <T as Loadable<'a, ARI>>::To {
+    pub fn load(&self) -> <T as Loadable<'a, 'i, ARI>>::To {
         Loadable::load_from(/**/ self.ref_t /**/, self.area)
     }
 }
