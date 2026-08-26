@@ -1,4 +1,5 @@
 use crate::Area;
+use core::marker::PhantomData;
 
 /// For sealing [AddrReprIndicator] only. Intentionally _not_ public.
 trait AddrReprIndicatorSealBase {}
@@ -64,8 +65,9 @@ type AddrWidthLabel = char;
 ///
 /// `W` indicates how many bytes.
 #[non_exhaustive]
-struct AddrRepr<const W: AddrWidthLabel, const IS_IDX: bool> {
+struct AddrRepr<'a, const W: AddrWidthLabel, const IS_IDX: bool> {
     _never_to_instantiate: [u64; usize::MAX],
+    _a_invariant: PhantomData<&'a fn(&'a ())>,
 }
 
 /// 2 bytes (16 bit) address label. Respective to [AddrIdx16].
@@ -84,24 +86,24 @@ const ADDR_WIDTH_LABEL_S: AddrWidthLabel = 's';
 
 /// 2 bytes (16 bit) address. Respective to [ADDR_WIDTH_LABEL_16].
 #[allow(private_interfaces)]
-pub type AddrIdx16 = AddrRepr<ADDR_WIDTH_LABEL_16, true>;
+pub type AddrIdx16<'a> = AddrRepr<'a, ADDR_WIDTH_LABEL_16, true>;
 /// 4 bytes (32 bit) address. Respective to [ADDR_WIDTH_LABEL_32].
 #[allow(private_interfaces)]
-pub type AddrIdx32 = AddrRepr<ADDR_WIDTH_LABEL_32, true>;
+pub type AddrIdx32<'a> = AddrRepr<'a, ADDR_WIDTH_LABEL_32, true>;
 /// 8 bytes (64 bit) address. Respective to [ADDR_WIDTH_LABEL_64].
 #[allow(private_interfaces)]
-pub type AddrIdx64 = AddrRepr<ADDR_WIDTH_LABEL_64, true>;
+pub type AddrIdx64<'a> = AddrRepr<'a, ADDR_WIDTH_LABEL_64, true>;
 
 /// [usize]-wide address. Respective to [ADDR_WIDTH_LABEL_S]. _Not_ the same as any other value,
 /// even if the width matches. That prevents hardcoding of any platform's address width, or mistakes
 /// by using [AddrIdxS] interchangeably with any other address indicator. (Even if they happen to be
 /// of the same address width on any platform). See also [ADDR_WIDTH_LABEL_S].
 #[allow(private_interfaces)]
-pub type AddrIdxS = AddrRepr<ADDR_WIDTH_LABEL_S, true>;
+pub type AddrIdxS<'a> = AddrRepr<'a, ADDR_WIDTH_LABEL_S, true>;
 
 /// [usize]-wide address POINTER/reference (_not_ an Area's index).
 #[allow(private_interfaces)]
-pub type AddrPtr = AddrRepr<ADDR_WIDTH_LABEL_S, false>;
+pub type AddrPtr<'a> = AddrRepr<'a, ADDR_WIDTH_LABEL_S, false>;
 
 /// Unfortunately, we can't just have
 /// ```ignore
@@ -121,19 +123,19 @@ mod addr_repr_indicator_impls {
     // @TODO if we change this, it gets *aligned*
     //type Bytes<const N: usize> = [u8; N];
 
-    impl<'a> AddrReprIndicator<'a> for AddrIdx16 {
+    impl<'a> AddrReprIndicator<'a> for AddrIdx16<'a> {
         type Addr = u16; //Bytes<2>;
-        type AreaRef = &'a crate::Area<'a, AddrIdx16>;
+        type AreaRef = &'a crate::Area<'a, AddrIdx16<'a>>;
     }
-    impl<'a> AddrReprIndicator<'a> for AddrIdx32 {
+    impl<'a> AddrReprIndicator<'a> for AddrIdx32<'a> {
         type Addr = u32; //Bytes<4>;
-        type AreaRef = &'a crate::Area<'a, AddrIdx32>;
+        type AreaRef = &'a crate::Area<'a, AddrIdx32<'a>>;
     }
-    impl<'a> AddrReprIndicator<'a> for AddrIdx64 {
+    impl<'a> AddrReprIndicator<'a> for AddrIdx64<'a> {
         type Addr = u64; //Bytes<8>;
-        type AreaRef = &'a crate::Area<'a, AddrIdx64>;
+        type AreaRef = &'a crate::Area<'a, AddrIdx64<'a>>;
     }
-    impl<'a> AddrReprIndicator<'a> for AddrIdxS {
+    impl<'a> AddrReprIndicator<'a> for AddrIdxS<'a> {
         /*#[cfg(target_pointer_width = "16")]
         type Addr = u16; //Bytes<2>;
         #[cfg(target_pointer_width = "32")]
@@ -142,7 +144,7 @@ mod addr_repr_indicator_impls {
         type Addr = u64; //Bytes<8>;*/
         type Addr = usize;
 
-        type AreaRef = &'a crate::Area<'a, AddrIdxS>;
+        type AreaRef = &'a crate::Area<'a, AddrIdxS<'a>>;
     }
 
     #[derive(Clone, Copy)]
@@ -154,7 +156,7 @@ mod addr_repr_indicator_impls {
         }
     }
 
-    impl<'a> AddrReprIndicator<'a> for AddrPtr {
+    impl<'a> AddrReprIndicator<'a> for AddrPtr<'a> {
         /*#[cfg(target_pointer_width = "16")]
         type Addr = u16;//Bytes<2>;
         #[cfg(target_pointer_width = "32")]
@@ -177,8 +179,8 @@ mod addr_repr_indicator_impls {
     /// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement
     /// [AddrReprIndicator] for [AddrRepr] (because both [AddrReprIndicator] and [AddrRepr]
     /// are defined in this crate).
-    impl<const PWI: AddrWidthLabel, const IS_IDX: bool> AddrReprIndicatorSealBase
-        for AddrRepr<PWI, IS_IDX>
+    impl<'a, const PWI: AddrWidthLabel, const IS_IDX: bool> AddrReprIndicatorSealBase
+        for AddrRepr<'a, PWI, IS_IDX>
     {
     }
 }
