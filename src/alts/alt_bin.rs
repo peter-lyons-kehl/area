@@ -17,6 +17,9 @@ pub use self::{RefBin as Ref, VorBin as Vor};
 pub struct VorBin<'a: 'i, 'i, I>(&'i I, PhantomData<&'a fn(&'a ()) /* invariant over 'a */>);
 
 impl<'a: 'i, 'i, I> VorBin<'a, 'i, I> {
+    // @TODO not necessry: for now: @TODO receive area: Option<&Area<'a>, ARI> instead of just a
+    // generic ARI. This way, if it is Some, we can (optionally/in debug mode) verify that the
+    // reference is within the given Area.
     pub fn new(ri: &'i I) -> Self {
         Self(ri, PhantomData)
     }
@@ -47,7 +50,8 @@ impl<'a: 'i, 'i, I> VorBin<'a, 'i, I> {
         unsafe { core::mem::transmute(result) }
     }
 
-    pub fn extend_lifetime<ARI: AddrReprIndicator<'a>>(&'i self) { //@TODO
+    pub fn extend_lifetime<ARI: AddrReprIndicator<'a>>(&'i self) -> &'a I {
+        unsafe { core::mem::transmute(&self.0) }
     }
 }
 

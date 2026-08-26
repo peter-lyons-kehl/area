@@ -129,12 +129,11 @@ impl<'a: 'i, 'i, I: 'a + PartialEq, ARI: AddrReprIndicator<'a>> Iterator for Ite
             Some(item_ref)
         } else {
             if let Some(subsequent_own) = self.subsequent_own.as_mut() {
-                let item_ref = subsequent_own.item_vor.deref();
+                let item_ref = subsequent_own.item_vor.extend_lifetime::<ARI>();
 
                 self.subsequent_own = subsequent_own.ref_bin_to_next_own_bin();
 
-                todo!()
-                //Some(item_ref)
+                Some(item_ref)
             } else {
                 None
             }
