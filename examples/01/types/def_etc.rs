@@ -10,6 +10,9 @@ pub mod idx {
     use area::alts::alt_idx as alt;
 
     #[path = "../../def.rs"]
+    pub mod def;
+
+    /*#[path = "../../def.rs"]
     mod def_lifetimed;
 
     pub mod def {
@@ -24,7 +27,7 @@ pub mod idx {
         pub use super::def_lifetimed::*;
 
         //pub type LinkedListNodeStatic<I, AWI = AddrIdxS> = LinkedListNode<'static, 'static, I, AWI>;
-    }
+    }*/
 }
 
 pub mod bin {
