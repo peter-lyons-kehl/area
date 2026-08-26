@@ -37,16 +37,16 @@ impl<'i, I> AsRef<I> for VorIdx<'i, I> {
 /// intentionally used in place of the expected lifetime. Invariant is ensured by [PhantomData] over
 /// `&'_a fn(&'_a ())`. See https://doc.rust-lang.org/nomicon/subtyping.html.
 #[repr(C)]
-pub struct RefIdx<'_a, _T, ARI: AddrReprIndicator> {
+pub struct RefIdx<'_a, _T, ARI: AddrReprIndicator<'_a>> {
     /// This "becomes" [crate::alts::alt_bin::RefBin::ref_t] when `ARI` is
     /// [crate::address::AddrPtrWidthS].
-    pub(crate) address: <ARI as AddrReprIndicator>::Addr,
+    pub(crate) address: <ARI as AddrReprIndicator<'_a>>::Addr,
 
     _a_invariant: PhantomData<&'_a fn(&'_a ())>,
     _t_type: PhantomData<_T>,
 }
 // No derive, since we want [Clone] regardless of whether _T is [Clone].
-impl<'_a, _T, ARI: AddrReprIndicator> Clone for RefIdx<'_a, _T, ARI> {
+impl<'_a, _T, ARI: AddrReprIndicator<'_a>> Clone for RefIdx<'_a, _T, ARI> {
     fn clone(&self) -> Self {
         *self
         /*Self {
@@ -57,15 +57,15 @@ impl<'_a, _T, ARI: AddrReprIndicator> Clone for RefIdx<'_a, _T, ARI> {
     }
 }
 // No derive, since we want [Copy] regardless of whether _T is [Copy].
-impl<'_a, _T, ARI: AddrReprIndicator> Copy for RefIdx<'_a, _T, ARI> {}
+impl<'_a, _T, ARI: AddrReprIndicator<'_a>> Copy for RefIdx<'_a, _T, ARI> {}
 
 // @TODO move out of trait, direct into RefIdx
 /// This trait exists on its own, rather than just implementing [LoadFromArea::load_from] directly
 /// for [RefIdx], so that we can also have the other function with same name [RefIdx::load_from]
 /// implemented directly for [RefIdx] (with `'static` generic lifetimes), so that those two methods
 /// then intentionally conflict if attempted to be used on [RefIdx] with `'static` lifetime.
-pub trait LoadFromArea<'a, T, ARI: AddrReprIndicator> {
-    fn load_from(&self, a: <ARI as AddrReprIndicator>::AreaRef<'a>) -> RefBin<'a, T, ARI>;
+pub trait LoadFromArea<'a, T, ARI: AddrReprIndicator<'a>> {
+    fn load_from(&self, a: <ARI as AddrReprIndicator<'a>>::AreaRef) -> RefBin<'a, T, ARI>;
     // \---> @TODO seal the trait
     //
     // \---> @TODO should the receiver have 't lifetime??: &'t self
@@ -73,8 +73,8 @@ pub trait LoadFromArea<'a, T, ARI: AddrReprIndicator> {
     // verification + pointer arithmetic + cast + wrap
 }
 
-impl<'a, T, ARI: AddrReprIndicator> LoadFromArea<'a, T, ARI> for RefIdx<'a, T, ARI> {
-    fn load_from(&self, a: <ARI as AddrReprIndicator>::AreaRef<'a>) -> RefBin<'a, T, ARI> {
+impl<'a, T, ARI: AddrReprIndicator<'a>> LoadFromArea<'a, T, ARI> for RefIdx<'a, T, ARI> {
+    fn load_from(&self, a: <ARI as AddrReprIndicator<'a>>::AreaRef) -> RefBin<'a, T, ARI> {
         todo!()
     }
 }
@@ -92,7 +92,7 @@ impl<'a, T, ARI: AddrReprIndicator> LoadFromArea<'a, T, ARI> for RefIdx<'a, T, A
 
 // @TODO move out of the trait, into RefIdx
 /// For more manual/fine grain resolving.
-pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> {
+pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator<'a>> {
     type To;
 
     /// Like [super::alt_bin::Loadable::load], but when we don't need to resolve other fields of
@@ -102,7 +102,7 @@ pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> {
 }
 // @TODO \---- for what type to implement?
 
-impl<'a, 't: 'a, T: 't, ARI: AddrReprIndicator + 'a> LoadByNeighbor<'a, 't, T, ARI>
+impl<'a, 't: 'a, T: 't, ARI: AddrReprIndicator<'a>> LoadByNeighbor<'a, 't, T, ARI>
     for RefIdx<'a, T, ARI>
 /*where
 Self: 't,*/

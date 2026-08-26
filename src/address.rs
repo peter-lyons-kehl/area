@@ -32,7 +32,7 @@ impl IntoUsize for usize {
 /// 'static is _not_ strictly necessary, but then we'd need to restrict [AddrReprIndicator::AreaRef]
 /// with an extra bound....
 #[allow(private_bounds)]
-pub trait AddrReprIndicator: AddrReprIndicatorSealBase + Sized /*+ 'static*/ {
+pub trait AddrReprIndicator<'a>: AddrReprIndicatorSealBase + Sized + 'a {
     // @TODO add any traits, like From<...>, or make new traits, if needed
     type Addr: IntoUsize + Copy;
 
@@ -42,14 +42,8 @@ pub trait AddrReprIndicator: AddrReprIndicatorSealBase + Sized /*+ 'static*/ {
     /// - This is `()` only for [AddrPtr], where [crate::alts::alt_bin::RefBin] does _not_
     /// need to carry [crate::Area] reference at all.
     ///
-    /// This has to be [Copy] - for example, [crate::alts::alt_bin::RefBin::from] need it.
-    //type AreaType<'a>;
-    //
-    // OR:
-    //
-    type AreaRef<'a>: Into<&'a Area<'a, Self>> + Copy
-    where
-        Self: 'a;
+    /// This has to be [Copy] - for example, [crate::alts::alt_bin::RefBin::from] needs it.
+    type AreaRef: Into<&'a Area<'a, Self>> + Copy;
     //const AREA_ARR_SIZE: usize = 1;
 }
 
@@ -127,19 +121,19 @@ mod addr_repr_indicator_impls {
     // @TODO if we change this, it gets *aligned*
     //type Bytes<const N: usize> = [u8; N];
 
-    impl AddrReprIndicator for AddrIdx16 {
+    impl<'a> AddrReprIndicator<'a> for AddrIdx16 {
         type Addr = u16; //Bytes<2>;
-        type AreaRef<'a> = &'a crate::Area<'a, AddrIdx16>;
+        type AreaRef = &'a crate::Area<'a, AddrIdx16>;
     }
-    impl AddrReprIndicator for AddrIdx32 {
+    impl<'a> AddrReprIndicator<'a> for AddrIdx32 {
         type Addr = u32; //Bytes<4>;
-        type AreaRef<'a> = &'a crate::Area<'a, AddrIdx32>;
+        type AreaRef = &'a crate::Area<'a, AddrIdx32>;
     }
-    impl AddrReprIndicator for AddrIdx64 {
+    impl<'a> AddrReprIndicator<'a> for AddrIdx64 {
         type Addr = u64; //Bytes<8>;
-        type AreaRef<'a> = &'a crate::Area<'a, AddrIdx64>;
+        type AreaRef = &'a crate::Area<'a, AddrIdx64>;
     }
-    impl AddrReprIndicator for AddrIdxS {
+    impl<'a> AddrReprIndicator<'a> for AddrIdxS {
         /*#[cfg(target_pointer_width = "16")]
         type Addr = u16; //Bytes<2>;
         #[cfg(target_pointer_width = "32")]
@@ -148,19 +142,19 @@ mod addr_repr_indicator_impls {
         type Addr = u64; //Bytes<8>;*/
         type Addr = usize;
 
-        type AreaRef<'a> = &'a crate::Area<'a, AddrIdxS>;
+        type AreaRef = &'a crate::Area<'a, AddrIdxS>;
     }
 
     #[derive(Clone, Copy)]
     #[non_exhaustive]
     pub struct AreaRefEmpty;
-    impl<'a, ARI: AddrReprIndicator> Into<&'a Area<'a, ARI>> for AreaRefEmpty {
+    impl<'a, ARI: AddrReprIndicator<'a>> Into<&'a Area<'a, ARI>> for AreaRefEmpty {
         fn into(self) -> &'a Area<'a, ARI> {
             unreachable!("NOT to be used")
         }
     }
 
-    impl AddrReprIndicator for AddrPtr {
+    impl<'a> AddrReprIndicator<'a> for AddrPtr {
         /*#[cfg(target_pointer_width = "16")]
         type Addr = u16;//Bytes<2>;
         #[cfg(target_pointer_width = "32")]
@@ -177,7 +171,7 @@ mod addr_repr_indicator_impls {
         /// doesn't need [crate::Area].
         //
         //type AreaRef<'a> = ();
-        type AreaRef<'a> = AreaRefEmpty;
+        type AreaRef = AreaRefEmpty;
     }
 
     /// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement

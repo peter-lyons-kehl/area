@@ -46,7 +46,7 @@ impl<'i, I> VorBin<'i, I> {
         unsafe { core::mem::transmute(result) }
     }
 
-    pub fn extend_lifetime<'a, ARI: AddrReprIndicator + 'a>(&'i self)
+    pub fn extend_lifetime<'a, ARI: AddrReprIndicator<'a>>(&'i self)
     where
         'a: 'i,
     { //@TODO
@@ -55,18 +55,18 @@ impl<'i, I> VorBin<'i, I> {
 
 /// Intentionally _not_ [Clone]. @TODO consider [Clone], or even [Copy] - since now it's invariant over 'a.
 #[repr(C)]
-pub struct RefBin<'a, T, ARI: AddrReprIndicator + 'a> {
+pub struct RefBin<'a, T, ARI: AddrReprIndicator<'a>> {
     ref_t: &'a T,
 
     //@TODO: pub(crate) + make a shortcut fn for what gets affected
-    pub(crate) area: <ARI as AddrReprIndicator>::AreaRef<'a>,
+    pub(crate) area: <ARI as AddrReprIndicator<'a>>::AreaRef,
     _a_invariant: PhantomData<&'a fn(&'a ())>,
 }
-impl<'a, T, ARI: AddrReprIndicator>
-    From<(RefIdx<'a, T, ARI>, <ARI as AddrReprIndicator>::AreaRef<'a>)> for RefBin<'a, T, ARI>
+impl<'a, T, ARI: AddrReprIndicator<'a>>
+    From<(RefIdx<'a, T, ARI>, <ARI as AddrReprIndicator<'a>>::AreaRef)> for RefBin<'a, T, ARI>
 {
     fn from(
-        (ref_idx, area_ref): (RefIdx<'a, T, ARI>, <ARI as AddrReprIndicator>::AreaRef<'a>),
+        (ref_idx, area_ref): (RefIdx<'a, T, ARI>, <ARI as AddrReprIndicator<'a>>::AreaRef),
     ) -> Self {
         Self {
             ref_t: unsafe {
@@ -78,7 +78,7 @@ impl<'a, T, ARI: AddrReprIndicator>
     }
 }
 
-impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator> Deref for RefBin<'_a, T, _ARI> {
+impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator<'_a>> Deref for RefBin<'_a, T, _ARI> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         self.ref_t
@@ -88,7 +88,7 @@ impl<'_a, '_t: '_a, T, _ARI: AddrReprIndicator> Deref for RefBin<'_a, T, _ARI> {
 // @TODO rename? --> LoadImmediate, LoadParts, LoadWithParts, LoadNear, LoadTangernt, LoadJoined, LoadVerges, LoadTouching, LoadNigh
 //
 // --> Loadable
-pub trait Loadable<'a, ARI: AddrReprIndicator> {
+pub trait Loadable<'a, ARI: AddrReprIndicator<'a>> {
     /*type To<'a, 't: 'a, T: 't, ARI: AddrReprIndicator>
     where
         Self: 't,
@@ -108,7 +108,7 @@ pub trait Loadable<'a, ARI: AddrReprIndicator> {
     // it - see examples/01/types/def_etc.rs
     //
     // fn load(&'a self,...
-    fn load_from(&self, area: <ARI as AddrReprIndicator>::AreaRef<'a>) -> Self::To;
+    fn load_from(&self, area: <ARI as AddrReprIndicator<'a>>::AreaRef) -> Self::To;
 
     // \---> @TODO Docs:
     //
@@ -117,7 +117,7 @@ pub trait Loadable<'a, ARI: AddrReprIndicator> {
     // @TODO should it have receiver with a lifetime?: &'t self
 }
 
-impl<'a, T, ARI: AddrReprIndicator + 'a> RefBin<'a, T, ARI>
+impl<'a, T, ARI: AddrReprIndicator<'a>> RefBin<'a, T, ARI>
 where
     T: Loadable<'a, ARI>,
 {

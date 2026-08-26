@@ -5,7 +5,7 @@ use super::alt::{Ref, Vor};
 use crate::types::LinkedListNodeIdxBased;
 use area::address::{AddrIdxS, AddrReprIndicator};
 
-pub struct LinkedListNode<'a, I, ARI: AddrReprIndicator = AddrIdxS> {
+pub struct LinkedListNode<'a, I, ARI: AddrReprIndicator<'a> = AddrIdxS> {
     // @TODO make this a wrapper - either around I, or &I (and in both cases: Deref)
     //
     // \--- <-- GAT ARI:Item<I>

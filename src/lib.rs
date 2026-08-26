@@ -8,7 +8,7 @@ use core::marker::PhantomData;
 
 // @TODO doc invariant
 #[non_exhaustive]
-pub struct Area<'a, ARI: AddrReprIndicator> {
+pub struct Area<'a, ARI: AddrReprIndicator<'a>> {
     _ari: PhantomData<ARI>,
     _a_invariant: PhantomData<&'a fn(&'a ())>,
     // @TODO mut?
