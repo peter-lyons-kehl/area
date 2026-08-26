@@ -1,6 +1,7 @@
-pub use def_etc::{bin::def as bin, idx::def as idx};
+pub use def_loader::{bin::def as bin, idx::def as idx};
 
 pub use bin::LinkedListNode as LinkedListNodeBinBased;
 pub use idx::LinkedListNode as LinkedListNodeIdxBased;
 
-mod def_etc;
+mod bin_impl;
+mod def_loader;

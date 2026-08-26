@@ -1,41 +1,9 @@
-//use area::alts::alt_bin::RefBin;
 use area::address::AddrReprIndicator;
 use area::alts::VorBin;
 use area::alts::alt_bin::Loadable;
 //use area::alts::alt_idx::
 use super::{LinkedListNodeBinBased, LinkedListNodeIdxBased};
 use core::ops::Deref;
-
-pub mod idx {
-    use area::alts::alt_idx as alt;
-
-    #[path = "../../def.rs"]
-    pub mod def;
-
-    /*#[path = "../../def.rs"]
-    mod def_lifetimed;
-
-    pub mod def {
-        use super::def_lifetimed;
-        use area::address::AddrIdxS;
-
-        //pub use def_lifetimed::LinkedListNode;
-        //
-        // \--- instead of repeating all items to export, "automate":
-        //
-        // --- needed only if we ever add any items here on top/as extra
-        pub use super::def_lifetimed::*;
-
-        //pub type LinkedListNodeStatic<I, AWI = AddrIdxS> = LinkedListNode<'static, 'static, I, AWI>;
-    }*/
-}
-
-pub mod bin {
-    use area::alts::alt_bin as alt;
-
-    #[path = "../../def.rs"]
-    pub mod def;
-}
 
 impl<'a, I: 'a, ARI: AddrReprIndicator + 'a> Loadable<'a, ARI>
     for LinkedListNodeIdxBased<'a, I, ARI>
@@ -75,26 +43,16 @@ impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> LinkedListNodeBinBased<
     ///
     /// &'a self
     fn ref_bin_to_next_own_bin(&self) -> Option<Self> {
-        //@TODO? .map(...) <-- Option::map(...)
-        if let Some(next_ref_bin) = self.next.as_ref() {
-            if false {
-                let ref_node_idx_based = next_ref_bin.deref();
-
-                // @TODO create and use a shortcut fn. Then make .area pub(crate) again. Se @TODO in alt_bin.rs
-                let node_own_bin_based = ref_node_idx_based.load_from(next_ref_bin.area);
-
-                return Some(node_own_bin_based);
-            }
-
+        self.next.as_ref().map(|next_ref_bin| next_ref_bin.load())
+        /*if let Some(next_ref_bin) = self.next.as_ref() {
             let node_own_bin_based = next_ref_bin.load();
-
             Some(node_own_bin_based)
         } else {
             None
-        }
+        }*/
     }
 
-    pub fn has_item(&'a self, searched: &I) -> bool {
+    pub fn has_item(&self, searched: &I) -> bool {
         if self.has_item_check(searched) {
             return true;
         }
@@ -107,8 +65,7 @@ impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> LinkedListNodeBinBased<
                     return true;
                 }
 
-                let next_node_own_bin_based_not_extended =
-                    node_own_bin_based.ref_bin_to_next_own_bin();
+                node_own_bin_based_opt = node_own_bin_based.ref_bin_to_next_own_bin();
 
                 /*
                 // @TODO create and use a shortcut fn for this unsafe.
@@ -120,8 +77,6 @@ impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> LinkedListNodeBinBased<
 
                 node_own_bin_based_opt = next_node_own_bin_based_opt;
                 */
-
-                let next_node_own_bin_based_opt = next_node_own_bin_based_not_extended;
             } else {
                 return false;
             };
@@ -151,5 +106,44 @@ impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> LinkedListNodeBinBased<
                 return false;
             }
         }*/
+    }
+}
+
+#[non_exhaustive]
+pub struct Iter<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> {
+    initial_ref: Option<&'a LinkedListNodeBinBased<'a, I, ARI>>,
+    subsequent_own: Option<LinkedListNodeBinBased<'a, I, ARI>>,
+}
+
+impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> Iterator for Iter<'a, I, ARI> {
+    type Item = &'a I;
+
+    fn next(&mut self) -> Option<&'a I> {
+        if let Some(initial_ref) = self.initial_ref {
+            let item_ref = initial_ref.item_vor.deref();
+
+            self.subsequent_own = initial_ref.ref_bin_to_next_own_bin();
+            self.initial_ref = None;
+            Some(item_ref)
+        } else {
+            if let Some(subsequent_own) = self.subsequent_own.as_mut() {
+                let item_ref = subsequent_own.item_vor.deref();
+
+                self.subsequent_own = subsequent_own.ref_bin_to_next_own_bin();
+
+                todo!()
+                //Some(item_ref)
+            } else {
+                None
+            }
+        }
+    }
+}
+impl<'a, I: 'a + PartialEq, ARI: AddrReprIndicator + 'a> LinkedListNodeBinBased<'a, I, ARI> {
+    pub fn iter(&'a self) -> Iter<'a, I, ARI> {
+        Iter {
+            initial_ref: Some(self),
+            subsequent_own: None,
+        }
     }
 }

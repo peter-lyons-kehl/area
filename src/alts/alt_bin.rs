@@ -28,6 +28,7 @@ impl<'i, I> Deref for VorBin<'i, I> {
         self.0
     }
 }
+// @TODO \\--> AsRef, too? Like it is already so for VorIdx.
 
 impl<'i, I> VorBin<'i, I> {
     // Previous, but unnecessary:
@@ -44,6 +45,12 @@ impl<'i, I> VorBin<'i, I> {
 
         unsafe { core::mem::transmute(result) }
     }
+
+    pub fn extend_lifetime<'a, ARI: AddrReprIndicator + 'a>(&'i self)
+    where
+        'a: 'i,
+    {
+    }
 }
 
 /// Intentionally _not_ [Clone]. @TODO consider [Clone], or even [Copy] - since now it's invariant over 'a.
@@ -52,7 +59,7 @@ pub struct RefBin<'a, T, ARI: AddrReprIndicator> {
     ref_t: &'a T,
 
     //@TODO: pub(crate) + make a shortcut fn for what gets affected
-    pub area: <ARI as AddrReprIndicator>::AreaRef<'a>,
+    pub(crate) area: <ARI as AddrReprIndicator>::AreaRef<'a>,
     _a_invariant: PhantomData<&'a fn(&'a ())>,
 }
 impl<'a, T, ARI: AddrReprIndicator>
