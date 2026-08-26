@@ -29,10 +29,10 @@ impl IntoUsize for usize {
 
 /// Indicate address representation.
 ///
-/// 'static isa not strictly necessary, but then we'd need to restrict [AddrReprIndicator::AreaRef]
+/// 'static is _not_ strictly necessary, but then we'd need to restrict [AddrReprIndicator::AreaRef]
 /// with an extra bound....
 #[allow(private_bounds)]
-pub trait AddrReprIndicator: AddrReprIndicatorSealBase + Sized + 'static {
+pub trait AddrReprIndicator: AddrReprIndicatorSealBase + Sized /*+ 'static*/ {
     // @TODO add any traits, like From<...>, or make new traits, if needed
     type Addr: IntoUsize + Copy;
 
@@ -47,7 +47,9 @@ pub trait AddrReprIndicator: AddrReprIndicatorSealBase + Sized + 'static {
     //
     // OR:
     //
-    type AreaRef<'a>: Into<&'a Area<'a, Self>> + Copy;
+    type AreaRef<'a>: Into<&'a Area<'a, Self>> + Copy
+    where
+        Self: 'a;
     //const AREA_ARR_SIZE: usize = 1;
 }
 

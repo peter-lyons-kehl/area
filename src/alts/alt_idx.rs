@@ -102,7 +102,7 @@ pub trait LoadByNeighbor<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> {
 }
 // @TODO \---- for what type to implement?
 
-impl<'a, 't: 'a, T: 't, ARI: AddrReprIndicator> LoadByNeighbor<'a, 't, T, ARI>
+impl<'a, 't: 'a, T: 't, ARI: AddrReprIndicator + 'a> LoadByNeighbor<'a, 't, T, ARI>
     for RefIdx<'a, T, ARI>
 /*where
 Self: 't,*/

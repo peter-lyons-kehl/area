@@ -49,13 +49,13 @@ impl<'i, I> VorBin<'i, I> {
     pub fn extend_lifetime<'a, ARI: AddrReprIndicator + 'a>(&'i self)
     where
         'a: 'i,
-    {
+    { //@TODO
     }
 }
 
 /// Intentionally _not_ [Clone]. @TODO consider [Clone], or even [Copy] - since now it's invariant over 'a.
 #[repr(C)]
-pub struct RefBin<'a, T, ARI: AddrReprIndicator> {
+pub struct RefBin<'a, T, ARI: AddrReprIndicator + 'a> {
     ref_t: &'a T,
 
     //@TODO: pub(crate) + make a shortcut fn for what gets affected
@@ -117,7 +117,7 @@ pub trait Loadable<'a, ARI: AddrReprIndicator> {
     // @TODO should it have receiver with a lifetime?: &'t self
 }
 
-impl<'a, T, ARI: AddrReprIndicator> RefBin<'a, T, ARI>
+impl<'a, T, ARI: AddrReprIndicator + 'a> RefBin<'a, T, ARI>
 where
     T: Loadable<'a, ARI>,
 {
