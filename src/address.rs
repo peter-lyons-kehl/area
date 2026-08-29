@@ -125,15 +125,15 @@ mod addr_repr_indicator_impls {
 
     impl<'a> AddrReprIndicator<'a> for AddrIdx16<'a> {
         type Addr = u16; //Bytes<2>;
-        type AreaRef = &'a crate::Area<'a, AddrIdx16<'a>>;
+        type AreaRef = &'a crate::Area<'a, Self>;
     }
     impl<'a> AddrReprIndicator<'a> for AddrIdx32<'a> {
         type Addr = u32; //Bytes<4>;
-        type AreaRef = &'a crate::Area<'a, AddrIdx32<'a>>;
+        type AreaRef = &'a crate::Area<'a, Self>;
     }
     impl<'a> AddrReprIndicator<'a> for AddrIdx64<'a> {
         type Addr = u64; //Bytes<8>;
-        type AreaRef = &'a crate::Area<'a, AddrIdx64<'a>>;
+        type AreaRef = &'a crate::Area<'a, Self>;
     }
     impl<'a> AddrReprIndicator<'a> for AddrIdxS<'a> {
         /*#[cfg(target_pointer_width = "16")]
@@ -144,7 +144,7 @@ mod addr_repr_indicator_impls {
         type Addr = u64; //Bytes<8>;*/
         type Addr = usize;
 
-        type AreaRef = &'a crate::Area<'a, AddrIdxS<'a>>;
+        type AreaRef = &'a crate::Area<'a, Self>;
     }
 
     #[derive(Clone, Copy)]

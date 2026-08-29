@@ -24,6 +24,8 @@ pub struct LinkedListNode<'a: 'i, 'i, I, ARI: AddrReprIndicator<'a> = AddrIdxS<'
     //    type in alts::*, for example alts::*::Value.
     pub(crate) item_vor: Vor<'a, 'i, I>,
 
+    // @TODO RefIdxOpt, RefBinOpt as Option<NonZero...>-based types
+    //
     //prev: Option<Ref<'ia, LinkedListNode<'ia, I, ARI>, ARI>>,
     //
     //                      |
