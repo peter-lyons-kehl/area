@@ -2,11 +2,13 @@
 // module this file is loaded for.
 use super::alt::{Ref, Vor};
 
-use crate::types::LinkedListNodeIdxBased;
+use crate::types::LinkedListNodeRef;
 use area::address::{AddrIdxS, AddrReprIndicator};
 
 pub struct LinkedListNode<'a: 'i, 'i, I, ARI: AddrReprIndicator<'a> = AddrIdxS<'a>> {
-    // @TODO make this a wrapper - either around I, or &I (and in both cases: Deref)
+    // @TODO document
+    //
+    // This is a wrapper - either around I, or &I (and in both cases: Deref)
     //
     // \--- <-- GAT ARI:Item<I>
     //
@@ -35,6 +37,6 @@ pub struct LinkedListNode<'a: 'i, 'i, I, ARI: AddrReprIndicator<'a> = AddrIdxS<'
     //                           it needs to be _not_ Self, but RefIdx-based! That is: crate::idx::types::LinkdListNode
     //
     //                           So: It can be, and _has-to-be_, Idx-based *all_the_time*.
-    pub(crate) prev: Option<Ref<'a, LinkedListNodeIdxBased<'a, 'i, I, ARI>, ARI>>,
-    pub(crate) next: Option<Ref<'a, LinkedListNodeIdxBased<'a, 'i, I, ARI>, ARI>>,
+    pub(crate) prev: Option<Ref<'a, LinkedListNodeRef<'a, 'i, I, ARI>, ARI>>,
+    pub(crate) next: Option<Ref<'a, LinkedListNodeRef<'a, 'i, I, ARI>, ARI>>,
 }

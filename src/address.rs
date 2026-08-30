@@ -46,6 +46,22 @@ pub trait AddrReprIndicator<'a>: AddrReprIndicatorSealBase + Sized + 'a {
     /// This has to be [Copy] - for example, [crate::alts::alt_bin::RefBin::from] needs it.
     type AreaRef: Into<&'a Area<'a, Self>> + Copy;
     //const AREA_ARR_SIZE: usize = 1;
+
+    type RefData<IdxBased, BinBased>;
+
+    // @TODO new trait for convert
+    //
+    //type RefToBin<IdxBased, BinBased>: Into<Self::RefData<IdxBased, BinBased>>;
+
+    // @TODO maybe unnecessary: @TODO two methods:
+    // - (RefData or &RefData, creator fn) -> BinBased
+    // - (RefData or &RefData, creator fn) -> Either<&RefBased, /*owned*/ BinBased>
+    // - --- use custom types with PhantomData:
+    //
+    //      Ior = Instance Or Reference
+    //
+    // ------- \--- <--- have "type" field in AddrReprIndicator for this
+    //
 }
 
 /// Like an enum. However, it can't be a wrapper/struct/enum because of @TODO.
@@ -119,21 +135,30 @@ mod addr_repr_indicator_impls {
         AddrReprIndicatorSealBase, AddrWidthLabel,
     };
     use crate::Area;
+    use core::marker::PhantomData;
 
     // @TODO if we change this, it gets *aligned*
     //type Bytes<const N: usize> = [u8; N];
 
+    #[non_exhaustive]
+    pub struct RefDataIdxBased<IdxBased, BinBased>(IdxBased, PhantomData<BinBased>);
+    #[non_exhaustive]
+    pub struct RefDataBinBased<IdxBased, BinBased>(IdxBased, PhantomData<BinBased>);
+
     impl<'a> AddrReprIndicator<'a> for AddrIdx16<'a> {
         type Addr = u16; //Bytes<2>;
         type AreaRef = &'a crate::Area<'a, Self>;
+        type RefData<IdxBased, BinBased> = RefDataIdxBased<IdxBased, BinBased>;
     }
     impl<'a> AddrReprIndicator<'a> for AddrIdx32<'a> {
         type Addr = u32; //Bytes<4>;
         type AreaRef = &'a crate::Area<'a, Self>;
+        type RefData<IdxBased, BinBased> = RefDataIdxBased<IdxBased, BinBased>;
     }
     impl<'a> AddrReprIndicator<'a> for AddrIdx64<'a> {
         type Addr = u64; //Bytes<8>;
         type AreaRef = &'a crate::Area<'a, Self>;
+        type RefData<IdxBased, BinBased> = RefDataIdxBased<IdxBased, BinBased>;
     }
     impl<'a> AddrReprIndicator<'a> for AddrIdxS<'a> {
         /*#[cfg(target_pointer_width = "16")]
@@ -145,6 +170,7 @@ mod addr_repr_indicator_impls {
         type Addr = usize;
 
         type AreaRef = &'a crate::Area<'a, Self>;
+        type RefData<IdxBased, BinBased> = RefDataIdxBased<IdxBased, BinBased>;
     }
 
     #[derive(Clone, Copy)]
@@ -174,6 +200,7 @@ mod addr_repr_indicator_impls {
         //
         //type AreaRef<'a> = ();
         type AreaRef = AreaRefEmpty;
+        type RefData<IdxBased, BinBased> = RefDataBinBased<IdxBased, BinBased>;
     }
 
     /// Blanket impl for any (even incorrect) labels *is* ok, since 3rd party crates can't implement
